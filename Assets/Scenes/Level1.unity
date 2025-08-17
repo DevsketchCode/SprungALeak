@@ -1312,7 +1312,7 @@ MonoBehaviour:
   waterPlane: {fileID: 91926581}
   maxWaterHeight: 3
   waterRiseRate: 0.01
-  totalPatches: 1000
+  totalPatches: 250
   leakSound: {fileID: 665448562}
   levelTime: 120
   minLeakSpawnTime: 5
