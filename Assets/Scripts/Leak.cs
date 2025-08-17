@@ -2,7 +2,11 @@ using UnityEngine;
 
 public class Leak : MonoBehaviour
 {
+    // Public reference for the patch prefab
     public GameObject patchPrefab;
+
+    // Public reference for the cracking sound source
+    public AudioSource crackSoundSource;
 
     private GameManager gameManager;
     private bool playerIsNearby = false;
@@ -13,6 +17,12 @@ public class Leak : MonoBehaviour
         if (gameManager == null)
         {
             Debug.LogError("GameManager not found in scene.");
+        }
+
+        // Play the cracking sound one time when the leak is created
+        if (crackSoundSource != null)
+        {
+            crackSoundSource.Play();
         }
     }
 
@@ -29,8 +39,10 @@ public class Leak : MonoBehaviour
     {
         GameObject newPatch = Instantiate(patchPrefab, transform.position, transform.rotation, transform.parent);
 
+        // No audio call here. The GameManager handles the water flow sound.
+
         gameManager.RemoveLeak(gameObject);
-        gameManager.DecreasePatches(); // Call the new method to decrease patches
+        gameManager.DecreasePatches();
 
         Destroy(gameObject);
     }

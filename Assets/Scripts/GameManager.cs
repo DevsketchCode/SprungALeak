@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,6 +10,10 @@ public class GameManager : MonoBehaviour
     public float maxWaterHeight = 5f;
     public float waterRiseRate = 0.01f;
     public int totalPatches = 5;
+
+    // Public reference to the AudioSource for the leak sound
+    [Header("Audio")]
+    public AudioSource leakSound;
 
     [Header("Level Timer")]
     public float levelTime = 60f;
@@ -24,7 +29,13 @@ public class GameManager : MonoBehaviour
     public GameObject endGameMessagePanel;
 
     [Header("Player Controller Reference")]
-    public FirstPersonController playerController; // Drag your Player Controller here
+    public FirstPersonController playerController;
+
+    // --- UPDATED Public Variable ---
+    [Header("Spawner References")]
+    public List<IndividualWaterSpawner> spawners; // Changed from a single reference to a list
+
+    public List<GameObject> activeLeaks = new List<GameObject>();
 
     // === Private Variables ===
     private TextMeshProUGUI leaksText;
@@ -32,9 +43,10 @@ public class GameManager : MonoBehaviour
     private TextMeshProUGUI timerText;
     private TextMeshProUGUI messageText;
 
-    private List<GameObject> activeLeaks = new List<GameObject>();
     private bool gameOver = false;
     private bool timeUp = false;
+    private float currentWaterHeight;
+    private float maxWaterLevel;
 
     void Awake()
     {
@@ -60,11 +72,25 @@ public class GameManager : MonoBehaviour
     {
         currentLevelTime = levelTime;
         UpdateUI();
+
+        if(waterPlane == null)
+        {
+            Debug.LogError("Water Plane is not assigned in GameManager.");
+            return;
+        }
+        currentWaterHeight = waterPlane.transform.position.y;
+        maxWaterLevel = currentWaterHeight + maxWaterHeight;
     }
 
     void Update()
     {
         if (gameOver) return;
+
+        // --- NEW: Check for Escape key to return to Main Menu ---
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            ReturnToMainMenu();
+        }
 
         if (!timeUp)
         {
@@ -79,10 +105,11 @@ public class GameManager : MonoBehaviour
 
         if (activeLeaks.Count > 0)
         {
-            float riseAmount = waterRiseRate * activeLeaks.Count * Time.deltaTime;
-            waterPlane.transform.localScale += new Vector3(0, riseAmount, 0);
+            float waterLevelIncrease = waterRiseRate * activeLeaks.Count * Time.deltaTime;
+            currentWaterHeight += waterLevelIncrease;
+            waterPlane.transform.position = new Vector3(waterPlane.transform.position.x, currentWaterHeight, waterPlane.transform.position.z);
 
-            if (waterPlane.transform.localScale.y >= maxWaterHeight)
+            if (currentWaterHeight >= maxWaterLevel)
             {
                 EndGame(false);
             }
@@ -112,11 +139,41 @@ public class GameManager : MonoBehaviour
     public void AddLeak(GameObject leak)
     {
         activeLeaks.Add(leak);
+        Debug.Log("Leak added. Total leaks: " + activeLeaks.Count);
+
+        if (activeLeaks.Count == 1)
+        {
+            if (leakSound != null && !leakSound.isPlaying)
+            {
+                leakSound.Play();
+            }
+        }
     }
 
     public void RemoveLeak(GameObject leak)
     {
         activeLeaks.Remove(leak);
+        Debug.Log("Leak removed. Total leaks: " + activeLeaks.Count);
+
+        if (activeLeaks.Count == 0)
+        {
+            Debug.Log("No active leaks left. Stopping leak sound: " + leakSound.isPlaying);
+            if (leakSound != null && leakSound.isPlaying)
+            {
+                Debug.Log("Stopping leak sound.");
+                leakSound.Stop();
+                Debug.Log("Leak Sound should be stopped: " + leakSound.isPlaying);
+            }
+            // --- UPDATED Code ---
+            // Notify ALL spawners to reset their timers
+            foreach (var spawner in spawners)
+            {
+                if (spawner != null)
+                {
+                    spawner.OnLastLeakPatched();
+                }
+            }
+        }
     }
 
     public float GetNextLeakSpawnInterval()
@@ -139,11 +196,14 @@ public class GameManager : MonoBehaviour
         if (gameOver) return;
         gameOver = true;
 
-        // Hide UI panels
+        if (leakSound != null && leakSound.isPlaying)
+        {
+            leakSound.Stop();
+        }
+
         if (objectDetailsPanel != null) objectDetailsPanel.SetActive(false);
         if (gameTimerPanel != null) gameTimerPanel.SetActive(false);
 
-        // Show end game message panel
         if (endGameMessagePanel != null) endGameMessagePanel.SetActive(true);
 
         if (messageText != null)
@@ -160,19 +220,43 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // --- New code to disable the player controller ---
         if (playerController != null)
         {
             playerController.cameraCanMove = false;
             playerController.playerCanMove = false;
         }
 
-        Cursor.lockState = CursorLockMode.None; // Release the cursor
+        Cursor.lockState = CursorLockMode.None;
         Time.timeScale = 0f;
     }
 
     public void DecreasePatches()
     {
         totalPatches--;
+    }
+
+    // --- NEW: Method for stopping sounds and returning to the main menu ---
+    private void ReturnToMainMenu()
+    {
+        // Return to the MainMenu scene
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    public void LoadScene(string sceneName)
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(sceneName);
+    }
+
+    public void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 }
