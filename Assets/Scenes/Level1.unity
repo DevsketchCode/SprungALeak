@@ -230,7 +230,7 @@ Transform:
   m_GameObject: {fileID: 91926581}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.1, y: -47, z: -0.2}
+  m_LocalPosition: {x: -0.1, y: -46.744, z: -0.2}
   m_LocalScale: {x: 40, y: 1, z: 20}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1314,9 +1314,9 @@ MonoBehaviour:
   waterRiseRate: 0.01
   totalPatches: 250
   leakSound: {fileID: 665448562}
-  levelTime: 120
+  levelTime: 240
   minLeakSpawnTime: 5
-  maxLeakSpawnTime: 25
+  maxLeakSpawnTime: 20
   objectDetailsPanel: {fileID: 677573473}
   gameTimerPanel: {fileID: 143133739}
   endGameMessagePanel: {fileID: 1778463391}
