@@ -29,7 +29,7 @@ public class Leak : MonoBehaviour
     void Update()
     {
         // Only check for a click if the player is nearby and has patches
-        if (playerIsNearby && Input.GetMouseButtonDown(0) && gameManager.totalPatches > 0)
+        if (playerIsNearby && Input.GetMouseButtonDown(0) && gameManager.patchesHeldByPlayer > 0)
         {
             PatchLeak();
         }

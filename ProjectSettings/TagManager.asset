@@ -13,8 +13,8 @@ TagManager:
   - Hole
   - Water
   - UI
-  - 
-  - 
+  - Ship
+  - WaterMask
   - 
   - 
   - 
@@ -40,6 +40,12 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Ship
+    uniqueID: 4254850453
+    locked: 0
+  - name: Water
+    uniqueID: 925353173
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0

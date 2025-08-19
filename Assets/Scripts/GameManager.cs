@@ -9,7 +9,8 @@ public class GameManager : MonoBehaviour
     public GameObject waterPlane;
     public float maxWaterHeight = 5f;
     public float waterRiseRate = 0.01f;
-    public int totalPatches = 5;
+    public int maxPatchesHeld = 10;
+    public int patchesHeldByPlayer = 0;
 
     // Public reference to the AudioSource for the leak sound
     [Header("Audio")]
@@ -73,7 +74,13 @@ public class GameManager : MonoBehaviour
         currentLevelTime = levelTime;
         UpdateUI();
 
-        if(waterPlane == null)
+        if(SceneManager.GetActiveScene().name == "MainMenu" || SceneManager.GetActiveScene().name == "Credits")
+        {
+            Debug.Log("In Main Menu and Credits Scenes, skip the game start setup.");
+            return;
+        }
+
+        if (waterPlane == null)
         {
             Debug.LogError("Water Plane is not assigned in GameManager.");
             return;
@@ -126,7 +133,7 @@ public class GameManager : MonoBehaviour
         }
         if (patchesText != null)
         {
-            patchesText.text = "Patches Left: " + totalPatches;
+            patchesText.text = "Patches Left: " + patchesHeldByPlayer;
         }
         if (timerText != null)
         {
@@ -232,7 +239,7 @@ public class GameManager : MonoBehaviour
 
     public void DecreasePatches()
     {
-        totalPatches--;
+        patchesHeldByPlayer--;
     }
 
     // --- NEW: Method for stopping sounds and returning to the main menu ---

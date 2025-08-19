@@ -1,0 +1,10 @@
+Passenger Boat: 
+https://www.cgtrader.com/free-3d-models/watercraft/recreational-watercraft/passenger-boat
+by Static3D - Royalty Free No Ai License
+
+Water: 
+https://assetstore.unity.com/packages/vfx/shaders/water-shaders-v2-x-149916
+Water Shaders V2.x by Nick Veselov #NVJOB
+
+Water Textures used for Normal Maps
+https://www.cadhatch.com/seamless-water-textures
