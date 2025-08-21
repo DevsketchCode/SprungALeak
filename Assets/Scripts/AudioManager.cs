@@ -39,10 +39,10 @@ public class AudioManager : MonoBehaviour
 
     void Start()
     {
-        musicSource.outputAudioMixerGroup = musicGroup;
-        ambienceSource.outputAudioMixerGroup = ambienceGroup;
-        leakSource.outputAudioMixerGroup = leakGroup;
-        patchSource.outputAudioMixerGroup = patchGroup;
+        if (musicSource != null) musicSource.outputAudioMixerGroup = musicGroup;
+        if (ambienceSource != null) ambienceSource.outputAudioMixerGroup = ambienceGroup;
+        if (leakSource != null) leakSource.outputAudioMixerGroup = leakGroup;
+        if (patchSource!= null) patchSource.outputAudioMixerGroup = patchGroup;
 
         PlayBackgroundMusic();
         PlayAmbience();

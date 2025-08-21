@@ -147,6 +147,7 @@ Material:
     - _SrcBlendAlpha: 1
     - _Strength: 0.07
     - _Surface: 0
+    - _WaveDirection: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
@@ -157,5 +158,7 @@ Material:
     - _ShallowWaterColor: {r: 0.070576705, g: 0.090891406, b: 0.24528301, a: 0.6}
     - _ShipPosition: {r: -0, g: 0, b: -0.74, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _WaveDirection: {r: 0, g: 0, b: 0, a: 0}
+    - _WaveDirectionAndSpeed: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

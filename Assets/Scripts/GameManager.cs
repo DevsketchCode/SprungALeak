@@ -94,10 +94,10 @@ public class GameManager : MonoBehaviour
         if (gameOver) return;
 
         // --- NEW: Check for Escape key to return to Main Menu ---
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            ReturnToMainMenu();
-        }
+        //if (Input.GetKeyDown(KeyCode.Escape))
+        //{
+        //    ReturnToMainMenu();
+        //}
 
         if (!timeUp)
         {
