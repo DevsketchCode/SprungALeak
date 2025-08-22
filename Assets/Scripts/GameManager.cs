@@ -16,7 +16,14 @@ public class GameManager : MonoBehaviour
     [Header("Audio")]
     public AudioSource leakSound;
 
-    [Header("Level Timer")]
+    [Header("Initial Game Delay")]
+    [Tooltip("The time in seconds before the main game timer and spawning begins.")]
+    public float initialDelayTime = 5f;
+    private float currentInitialDelayTime;
+    private bool initialTimerIsComplete = false;
+
+    [Header("Level Time")]
+    [Tooltip("The total time limit for the level in seconds after initial delay.")]
     public float levelTime = 60f;
     private float currentLevelTime;
 
@@ -72,9 +79,11 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         currentLevelTime = levelTime;
+        currentInitialDelayTime = initialDelayTime;
+        initialTimerIsComplete = false;
         UpdateUI();
 
-        if(SceneManager.GetActiveScene().name == "MainMenu" || SceneManager.GetActiveScene().name == "Credits")
+        if (SceneManager.GetActiveScene().name == "MainMenu" || SceneManager.GetActiveScene().name == "Credits")
         {
             Debug.Log("In Main Menu and Credits Scenes, skip the game start setup.");
             return;
@@ -93,32 +102,45 @@ public class GameManager : MonoBehaviour
     {
         if (gameOver) return;
 
-        // --- NEW: Check for Escape key to return to Main Menu ---
+        // Check for Escape key to return to Main Menu ---
         //if (Input.GetKeyDown(KeyCode.Escape))
         //{
         //    ReturnToMainMenu();
         //}
 
-        if (!timeUp)
+        if (!initialTimerIsComplete)
         {
-            currentLevelTime -= Time.deltaTime;
-            if (currentLevelTime <= 0f)
+            currentInitialDelayTime -= Time.deltaTime;
+            if (currentInitialDelayTime <= 0f)
             {
-                currentLevelTime = 0f;
-                timeUp = true;
-                EndGame(true);
+                currentInitialDelayTime = 0f;
+                initialTimerIsComplete = true;
+                StartGame();
             }
         }
-
-        if (activeLeaks.Count > 0)
+        else // Once the initial timer is complete, run the main game logic
         {
-            float waterLevelIncrease = waterRiseRate * activeLeaks.Count * Time.deltaTime;
-            currentWaterHeight += waterLevelIncrease;
-            waterPlane.transform.position = new Vector3(waterPlane.transform.position.x, currentWaterHeight, waterPlane.transform.position.z);
-
-            if (currentWaterHeight >= maxWaterLevel)
+            if (!timeUp)
             {
-                EndGame(false);
+                currentLevelTime -= Time.deltaTime;
+                if (currentLevelTime <= 0f)
+                {
+                    currentLevelTime = 0f;
+                    timeUp = true;
+                    EndGame(true);
+                }
+            }
+
+            if (activeLeaks.Count > 0)
+            {
+                float waterLevelIncrease = waterRiseRate * activeLeaks.Count * Time.deltaTime;
+                currentWaterHeight += waterLevelIncrease;
+                waterPlane.transform.position = new Vector3(waterPlane.transform.position.x, currentWaterHeight, waterPlane.transform.position.z);
+
+                if (currentWaterHeight >= maxWaterLevel)
+                {
+                    EndGame(false);
+                }
             }
         }
 
@@ -137,10 +159,25 @@ public class GameManager : MonoBehaviour
         }
         if (timerText != null)
         {
-            int minutes = Mathf.FloorToInt(currentLevelTime / 60);
-            int seconds = Mathf.FloorToInt(currentLevelTime % 60);
-            timerText.text = string.Format("Time Until Help Arrives: {0:00}:{1:00}", minutes, seconds);
+            if (!initialTimerIsComplete)
+            {
+                int seconds = Mathf.CeilToInt(currentInitialDelayTime);
+                timerText.text = "Game Starts in: " + seconds;
+            }
+            else
+            {
+                int minutes = Mathf.FloorToInt(currentLevelTime / 60);
+                int seconds = Mathf.FloorToInt(currentLevelTime % 60);
+                timerText.text = string.Format("Time Until Help Arrives: {0:00}:{1:00}", minutes, seconds);
+            }
         }
+    }
+
+    // This is now called automatically after the initial delay
+    public void StartGame()
+    {
+        // Spawners are now active, handled by the main Update loop
+        Debug.Log("Game has started! Spawners are now active.");
     }
 
     public void AddLeak(GameObject leak)

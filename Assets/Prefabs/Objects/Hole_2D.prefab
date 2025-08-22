@@ -124,8 +124,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0aaccb5a79c6b94aae8486efe65accf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  patchPrefab: {fileID: 8475778175828536400, guid: bcf4a76ff940c064cbfac38a6938c6a2, type: 3}
-  crackSoundSource: {fileID: 6167252023129460944}
+  patchObject: {fileID: 1142442424435495283, guid: a0a1b255d01fea643adcb61694c1c468, type: 3}
 --- !u!82 &6167252023129460944
 AudioSource:
   m_ObjectHideFlags: 0

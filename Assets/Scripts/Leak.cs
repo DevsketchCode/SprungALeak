@@ -2,47 +2,54 @@ using UnityEngine;
 
 public class Leak : MonoBehaviour
 {
-    // Public reference for the patch prefab
-    public GameObject patchPrefab;
+    // === Public Variables ===
+    public GameObject patchObject;
 
-    // Public reference for the cracking sound source
-    public AudioSource crackSoundSource;
-
+    // === Private Variables ===
     private GameManager gameManager;
     private bool playerIsNearby = false;
+    private bool isPatched = false; // Flag to prevent multiple patches
 
     void Start()
     {
+        // Find the GameManager object in the scene
         gameManager = FindObjectOfType<GameManager>();
         if (gameManager == null)
         {
-            Debug.LogError("GameManager not found in scene.");
-        }
-
-        // Play the cracking sound one time when the leak is created
-        if (crackSoundSource != null)
-        {
-            crackSoundSource.Play();
+            Debug.LogError("GameManager not found in the scene.");
         }
     }
 
     void Update()
     {
-        // Only check for a click if the player is nearby and has patches
-        if (playerIsNearby && Input.GetMouseButtonDown(0) && gameManager.patchesHeldByPlayer > 0)
+        // Only check for a click if the leak is not already patched, the player is nearby, and they have patches
+        if (!isPatched && playerIsNearby && Input.GetMouseButtonDown(0) && gameManager != null && gameManager.patchesHeldByPlayer > 0)
         {
             PatchLeak();
         }
     }
 
-    private void PatchLeak()
+    public void PatchLeak()
     {
-        GameObject newPatch = Instantiate(patchPrefab, transform.position, transform.rotation, transform.parent);
+        // Set the flag to true immediately to prevent subsequent calls
+        if (isPatched) return;
+        isPatched = true;
 
-        // No audio call here. The GameManager handles the water flow sound.
+        if (gameManager != null)
+        {
+            gameManager.DecreasePatches();
+            gameManager.RemoveLeak(gameObject);
+        }
 
-        gameManager.RemoveLeak(gameObject);
-        gameManager.DecreasePatches();
+        // Instantiate the patched object and destroy the leak object
+        if (patchObject != null)
+        {
+            Instantiate(patchObject, transform.position, transform.rotation);
+        }
+        else
+        {
+            Debug.LogWarning("PatchObject is not assigned to the Leak script.");
+        }
 
         Destroy(gameObject);
     }
@@ -52,7 +59,10 @@ public class Leak : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             playerIsNearby = true;
-            Debug.Log("Player is near a leak.");
+            if (gameManager != null && gameManager.patchesHeldByPlayer > 0)
+            {
+                Debug.Log("Player is near a leak. Click to patch.");
+            }
         }
     }
 

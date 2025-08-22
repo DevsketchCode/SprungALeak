@@ -55,7 +55,7 @@ TagManager:
   m_RenderingLayers:
   - Default
   - Light Layer 1
-  - Light Layer 2
+  - InteriorNoExternalLight
   - Light Layer 3
   - Light Layer 4
   - Light Layer 5
