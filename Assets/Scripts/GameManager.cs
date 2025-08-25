@@ -176,8 +176,14 @@ public class GameManager : MonoBehaviour
     // This is now called automatically after the initial delay
     public void StartGame()
     {
-        // Spawners are now active, handled by the main Update loop
-        Debug.Log("Game has started! Spawners are now active.");
+        // Tell all spawners in the list to start spawning
+        foreach (var spawner in spawners)
+        {
+            if (spawner != null)
+            {
+                spawner.StartSpawning();
+            }
+        }
     }
 
     public void AddLeak(GameObject leak)
@@ -208,7 +214,7 @@ public class GameManager : MonoBehaviour
                 leakSound.Stop();
                 Debug.Log("Leak Sound should be stopped: " + leakSound.isPlaying);
             }
-            // --- UPDATED Code ---
+
             // Notify ALL spawners to reset their timers
             foreach (var spawner in spawners)
             {

@@ -153,11 +153,11 @@ Material:
     m_Colors:
     - _BaseColor: {r: 0.127759, g: 0.3971063, b: 0.8207547, a: 1}
     - _Color: {r: 0.12775895, g: 0.39710626, b: 0.8207547, a: 1}
-    - _DeepWaterColor: {r: 0.04672481, g: 0.092491135, b: 0.4716981, a: 0.9490196}
+    - _DeepWaterColor: {r: 0.046724766, g: 0.09249107, b: 0.4716981, a: 0.79607844}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _PrimaryTiling: {r: 250, g: 250, b: 0, a: 0}
     - _SecondaryTiling: {r: 200, g: 200, b: 0, a: 0}
-    - _ShallowWaterColor: {r: 0.070576705, g: 0.090891406, b: 0.24528301, a: 0.6}
+    - _ShallowWaterColor: {r: 0.070576645, g: 0.090891354, b: 0.24528292, a: 0.41960785}
     - _ShipPosition: {r: -0, g: 0, b: -0.74, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _WaveDirection: {r: 0, g: 0, b: 0, a: 0}

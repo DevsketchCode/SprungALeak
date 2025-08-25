@@ -121,7 +121,7 @@ Material:
     - _ClearCoatSmoothness: 0
     - _Cull: 2
     - _Cutoff: 0.5
-    - _Depth: 1
+    - _Depth: 2000
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _Displacement: 0.5
@@ -155,6 +155,8 @@ Material:
     - _Color: {r: 0.12775895, g: 0.39710626, b: 0.8207547, a: 1}
     - _DeepWaterColor: {r: 0.04672481, g: 0.092491135, b: 0.4716981, a: 0.9490196}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _PrimaryTiling: {r: 25, g: 25, b: 0, a: 0}
+    - _SecondaryTiling: {r: 5, g: 5, b: 0, a: 0}
     - _ShallowWaterColor: {r: 0.070576705, g: 0.090891406, b: 0.24528301, a: 0.6}
     - _ShipPosition: {r: -0, g: 0, b: -0.74, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
