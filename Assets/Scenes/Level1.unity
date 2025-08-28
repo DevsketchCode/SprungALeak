@@ -2530,6 +2530,16 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 863279560}
   m_SourcePrefab: {fileID: 100100000, guid: 44ef109eb0395e3439c41119292ba0e9, type: 3}
+--- !u!4 &769359317 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 44ef109eb0395e3439c41119292ba0e9, type: 3}
+  m_PrefabInstance: {fileID: 769359316}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &769359318 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6397666145271793309, guid: 44ef109eb0395e3439c41119292ba0e9, type: 3}
+  m_PrefabInstance: {fileID: 769359316}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -2616,6 +2626,7 @@ GameObject:
   m_Component:
   - component: {fileID: 898946400}
   - component: {fileID: 898946399}
+  - component: {fileID: 898946401}
   m_Layer: 0
   m_Name: Enter_Steering_Trigger
   m_TagString: Untagged
@@ -2653,12 +2664,25 @@ Transform:
   m_GameObject: {fileID: 898946398}
   serializedVersion: 2
   m_LocalRotation: {x: -0.00000003774895, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -42.458797, z: 1.9623997}
+  m_LocalPosition: {x: 0, y: -42.1, z: 1.872}
   m_LocalScale: {x: 1.5, y: 1.2, z: 1.2}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &898946401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 898946398}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cc2fd93c67ead04890bfea35a5a6efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  steeringManager: {fileID: 1696212225}
 --- !u!1 &899468321
 GameObject:
   m_ObjectHideFlags: 0
@@ -3155,6 +3179,57 @@ Transform:
   - {fileID: 323738205}
   m_Father: {fileID: 169134315}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1235400468
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1235400469}
+  - component: {fileID: 1235400470}
+  m_Layer: 0
+  m_Name: ObstacleSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1235400469
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1235400468}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -44.93, z: 42.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1235400470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1235400468}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d24baf4f53c1fff409a40f143fdfd14e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  obstaclePrefab: {fileID: 2710402695508762470, guid: f43c4f893863fa34190c39cc24328405, type: 3}
+  shipTarget: {fileID: 769359317}
+  minSpawnInterval: 2
+  maxSpawnInterval: 5
+  obstacleSpeed: 3
+  displacementRange: 20
+  displacementAxis: {x: 1, y: 0, z: 0}
 --- !u!1 &1301177325
 GameObject:
   m_ObjectHideFlags: 0
@@ -3341,6 +3416,7 @@ Transform:
   m_Children:
   - {fileID: 665448561}
   - {fileID: 1301177327}
+  - {fileID: 1696212224}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1394074204
@@ -3833,6 +3909,56 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1696212223
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1696212224}
+  - component: {fileID: 1696212225}
+  m_Layer: 0
+  m_Name: SteeringManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1696212224
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1696212223}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1387545182}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1696212225
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1696212223}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff8a798d3fc369d4282a56e6a433af91, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  steeringObject: {fileID: 769359318}
+  captainPosition: {fileID: 898946400}
+  steeringSpeed: 5
+  maxSteeringRotation: 45
+  obstacleSpawner: {fileID: 1235400470}
+  playerMovementScript: {fileID: 2037471129}
 --- !u!1 &1708013513
 GameObject:
   m_ObjectHideFlags: 0
@@ -4651,6 +4777,7 @@ SceneRoots:
   - {fileID: 1018266282}
   - {fileID: 1960204458728266431}
   - {fileID: 898946400}
+  - {fileID: 1235400469}
   - {fileID: 1439146084}
   - {fileID: 376640251}
   - {fileID: 1930913755}
