@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Hole
   - Leak
+  - ShipColliders
+  - Obstacle
   layers:
   - Default
   - TransparentFX
@@ -15,10 +17,10 @@ TagManager:
   - UI
   - Ship
   - ShipHull
-  - 
-  - 
-  - 
-  - 
+  - Player
+  - ShipCollisionObjects
+  - BorderObjects
+  - LightReflectors
   - 
   - 
   - 

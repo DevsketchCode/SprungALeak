@@ -134,7 +134,7 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 0
-    - _Normal_Strength: 0.1
+    - _Normal_Strength: 3
     - _OcclusionStrength: 1
     - _Offset: 0
     - _Parallax: 0.005
@@ -142,6 +142,7 @@ Material:
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _Rotation: 90
+    - _RotationDegrees: 90
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
@@ -156,7 +157,10 @@ Material:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _Offset: {r: 0, g: 0, b: 0, a: 0}
+    - _Pivot: {r: 0.5, g: 0.5, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _Tint: {r: 0.6603774, g: 0.58316773, b: 0.52643293, a: 1}
+    - _Tiling: {r: 20, g: 10, b: 0, a: 0}
+    - _Tint: {r: 0.5566038, g: 0.44949925, b: 0.36494306, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

@@ -8,9 +8,11 @@ public class GameManager : MonoBehaviour
     // === Public Variables ===
     public GameObject waterPlane;
     public float maxWaterHeight = 5f;
-    public float waterRiseRate = 0.01f;
-    public int maxPatchesHeld = 10;
-    public int patchesHeldByPlayer = 0;
+    private int maxPatchesHeld; // Now a private variable, value set from GameSettingsManager
+    public int patchesHeldByPlayer = 0; // The current number of patches the player has
+
+    // Public property to expose maxPatchesHeld to other scripts
+    public int MaxPatchesHeld { get { return maxPatchesHeld; } }
 
     // Public reference to the AudioSource for the leak sound
     [Header("Audio")]
@@ -23,13 +25,7 @@ public class GameManager : MonoBehaviour
     private bool initialTimerIsComplete = false;
 
     [Header("Level Time")]
-    [Tooltip("The total time limit for the level in seconds after initial delay.")]
-    public float levelTime = 60f;
-    private float currentLevelTime;
-
-    [Header("Leak Spawn Times (Centralized)")]
-    public float minLeakSpawnTime = 5f;
-    public float maxLeakSpawnTime = 15f;
+    private float currentLevelTime; // Now stores the value from GameSettingsManager
 
     [Header("UI Panel References")]
     public GameObject objectDetailsPanel;
@@ -39,11 +35,25 @@ public class GameManager : MonoBehaviour
     [Header("Player Controller Reference")]
     public FirstPersonController playerController;
 
-    // --- UPDATED Public Variable ---
     [Header("Spawner References")]
-    public List<IndividualWaterSpawner> spawners; // Changed from a single reference to a list
+    public List<IndividualWaterSpawner> spawners;
+    public ObstacleSpawner obstacleSpawner; // Reference to the Obstacle Spawner
+
+    [Header("Obstacle Hit Settings")]
+    [Tooltip("Multiplier for water rise rate when the ship is hit by an obstacle. (e.g., 1.2 for 20% increase)")]
+    public float obstacleHitWaterRiseRateMultiplier = 1.2f;
 
     public List<GameObject> activeLeaks = new List<GameObject>();
+
+    // NEW: Warning Lights References
+    [Header("Warning Lights")]
+    [Tooltip("Parent GameObject of the Caution light (for leaks). Should have SpinningLightEffect script.")]
+    public GameObject cautionLightParent;
+    private SpinningLightEffect cautionLightEffect; // Cached component
+
+    [Tooltip("Parent GameObject of the Warning light (for obstacles). Should have SpinningLightEffect script.")]
+    public GameObject warningLightParent;
+    private SpinningLightEffect warningLightEffect; // Cached component
 
     // === Private Variables ===
     private TextMeshProUGUI leaksText;
@@ -55,6 +65,17 @@ public class GameManager : MonoBehaviour
     private bool timeUp = false;
     private float currentWaterHeight;
     private float maxWaterLevel;
+
+    // Variables that will store the settings from GameSettingsManager
+    // These are now visible in the Inspector using [SerializeField]
+    [SerializeField] private float actualWaterRiseRate; // Stores the converted decimal value
+    [SerializeField] private float actualMinLeakSpawnTime;
+    [SerializeField] private float actualMaxLeakSpawnTime;
+    private float actualObstacleSpeed;
+    private float actualDisplacementRange;
+    [SerializeField] private float actualMinShipObstacleSpawnInterval;
+    [SerializeField] private float actualMaxShipObstacleSpawnInterval;
+    [SerializeField] private bool actualEnableSteeringAndObstacles;
 
     void Awake()
     {
@@ -74,12 +95,22 @@ public class GameManager : MonoBehaviour
         {
             messageText = endGameMessagePanel.GetComponentInChildren<TextMeshProUGUI>();
         }
+
+        // Cache SpinningLightEffect components
+        if (cautionLightParent != null)
+        {
+            cautionLightEffect = cautionLightParent.GetComponent<SpinningLightEffect>();
+            if (cautionLightEffect == null) Debug.LogWarning("Caution Light Parent does not have a SpinningLightEffect script attached.");
+        }
+        if (warningLightParent != null)
+        {
+            warningLightEffect = warningLightParent.GetComponent<SpinningLightEffect>();
+            if (warningLightEffect == null) Debug.LogWarning("Warning Light Parent does not have a SpinningLightEffect script attached.");
+        }
     }
 
     void Start()
     {
-        currentLevelTime = levelTime;
-        currentInitialDelayTime = initialDelayTime;
         initialTimerIsComplete = false;
         UpdateUI();
 
@@ -89,6 +120,73 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        // --- Retrieve settings from GameSettingsManager ---
+        if (GameSettingsManager.Instance != null)
+        {
+            actualWaterRiseRate = GameSettingsManager.Instance.currentWaterRiseRate / 100f;
+            actualMinLeakSpawnTime = GameSettingsManager.Instance.currentMinLeakSpawnTime;
+            actualMaxLeakSpawnTime = GameSettingsManager.Instance.currentMaxLeakSpawnTime;
+            maxPatchesHeld = GameSettingsManager.Instance.currentMaxPatchesHeld;
+            patchesHeldByPlayer = maxPatchesHeld;
+            currentLevelTime = GameSettingsManager.Instance.currentLevelTime;
+            actualObstacleSpeed = GameSettingsManager.Instance.currentObstacleSpeed;
+            actualDisplacementRange = GameSettingsManager.Instance.currentDisplacementRange;
+            actualMinShipObstacleSpawnInterval = GameSettingsManager.Instance.currentMinShipObstacleSpawnInterval;
+            actualMaxShipObstacleSpawnInterval = GameSettingsManager.Instance.currentMaxShipObstacleSpawnInterval;
+            actualEnableSteeringAndObstacles = GameSettingsManager.Instance.currentEnableSteeringAndObstacles;
+
+            foreach (var spawner in spawners)
+            {
+                if (spawner != null)
+                {
+                    spawner.maxLeaks = GameSettingsManager.Instance.currentMaxLeaksPerSpawner;
+                }
+            }
+
+            if (playerController != null)
+            {
+                playerController.walkSpeed *= GameSettingsManager.Instance.customPlayerSpeedMultiplier;
+                playerController.sprintSpeed *= GameSettingsManager.Instance.customPlayerSpeedMultiplier;
+
+                SteeringManager steeringManager = playerController.GetComponent<SteeringManager>();
+                if (steeringManager != null)
+                {
+                    steeringManager.enabled = actualEnableSteeringAndObstacles;
+                }
+                else
+                {
+                    Debug.LogWarning("SteeringManager component not found on PlayerController. Cannot enable/disable steering.");
+                }
+            }
+
+            if (obstacleSpawner != null)
+            {
+                obstacleSpawner.obstacleSpeed = actualObstacleSpeed;
+                obstacleSpawner.displacementRange = actualDisplacementRange;
+                obstacleSpawner.minShipObstacleSpawnInterval = actualMinShipObstacleSpawnInterval;
+                obstacleSpawner.maxShipObstacleSpawnInterval = actualMaxShipObstacleSpawnInterval;
+                obstacleSpawner.enabled = actualEnableSteeringAndObstacles;
+                Debug.Log($"GameManager: Obstacle Spawner settings updated - Speed: {actualObstacleSpeed}, Range: {actualDisplacementRange}, Min Spawn: {actualMinShipObstacleSpawnInterval}, Max Spawn: {actualMaxShipObstacleSpawnInterval}, Enabled: {actualEnableSteeringAndObstacles}");
+            }
+
+            Debug.Log($"GameManager: Applied settings - Water Rate: {GameSettingsManager.Instance.currentWaterRiseRate}% ({actualWaterRiseRate:F2}), Patches: {maxPatchesHeld}, Min Leak Time: {actualMinLeakSpawnTime}, Level Time: {currentLevelTime}, Steering/Obstacles Enabled: {actualEnableSteeringAndObstacles}");
+        }
+        else
+        {
+            Debug.LogError("GameSettingsManager not found! Using default GameManager settings.");
+            actualWaterRiseRate = 0.01f;
+            actualMinLeakSpawnTime = 5f;
+            actualMaxLeakSpawnTime = 15f;
+            maxPatchesHeld = 10;
+            patchesHeldByPlayer = maxPatchesHeld;
+            currentLevelTime = 60f;
+            actualObstacleSpeed = 5f;
+            actualDisplacementRange = 10f;
+            actualMinShipObstacleSpawnInterval = 2f;
+            actualMaxShipObstacleSpawnInterval = 5f;
+            actualEnableSteeringAndObstacles = true;
+        }
+
         if (waterPlane == null)
         {
             Debug.LogError("Water Plane is not assigned in GameManager.");
@@ -96,17 +194,15 @@ public class GameManager : MonoBehaviour
         }
         currentWaterHeight = waterPlane.transform.position.y;
         maxWaterLevel = currentWaterHeight + maxWaterHeight;
+
+        // Initialize lights to off (call the SpinningLightEffect's Stop method)
+        if (cautionLightEffect != null) cautionLightEffect.StopSpinAndLight();
+        if (warningLightEffect != null) warningLightEffect.StopSpinAndLight();
     }
 
     void Update()
     {
         if (gameOver) return;
-
-        // Check for Escape key to return to Main Menu ---
-        //if (Input.GetKeyDown(KeyCode.Escape))
-        //{
-        //    ReturnToMainMenu();
-        //}
 
         if (!initialTimerIsComplete)
         {
@@ -133,13 +229,29 @@ public class GameManager : MonoBehaviour
 
             if (activeLeaks.Count > 0)
             {
-                float waterLevelIncrease = waterRiseRate * activeLeaks.Count * Time.deltaTime;
+                // Manage Caution Light for leaks: Start spinning and enable child lights
+                if (cautionLightEffect != null)
+                {
+                    // Call StartSpinAndLight, which also activates its lightContainerChild
+                    cautionLightEffect.StartSpinAndLight();
+                }
+
+                float waterLevelIncrease = actualWaterRiseRate * activeLeaks.Count * Time.deltaTime;
                 currentWaterHeight += waterLevelIncrease;
                 waterPlane.transform.position = new Vector3(waterPlane.transform.position.x, currentWaterHeight, waterPlane.transform.position.z);
 
                 if (currentWaterHeight >= maxWaterLevel)
                 {
                     EndGame(false);
+                }
+            }
+            else // No active leaks
+            {
+                // Manage Caution Light for leaks: Stop spinning and disable child lights
+                if (cautionLightEffect != null)
+                {
+                    // Call StopSpinAndLight, which also deactivates its lightContainerChild
+                    cautionLightEffect.StopSpinAndLight();
                 }
             }
         }
@@ -173,10 +285,8 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // This is now called automatically after the initial delay
     public void StartGame()
     {
-        // Tell all spawners in the list to start spawning
         foreach (var spawner in spawners)
         {
             if (spawner != null)
@@ -191,13 +301,7 @@ public class GameManager : MonoBehaviour
         activeLeaks.Add(leak);
         Debug.Log("Leak added. Total leaks: " + activeLeaks.Count);
 
-        if (activeLeaks.Count == 1)
-        {
-            if (leakSound != null && !leakSound.isPlaying)
-            {
-                leakSound.Play();
-            }
-        }
+        // Caution light logic is now in Update() to continuously check activeLeaks.Count
     }
 
     public void RemoveLeak(GameObject leak)
@@ -214,8 +318,6 @@ public class GameManager : MonoBehaviour
                 leakSound.Stop();
                 Debug.Log("Leak Sound should be stopped: " + leakSound.isPlaying);
             }
-
-            // Notify ALL spawners to reset their timers
             foreach (var spawner in spawners)
             {
                 if (spawner != null)
@@ -224,11 +326,42 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+        // Caution light logic is now in Update() to continuously check activeLeaks.Count
+    }
+
+    // NEW: Method for YachtCollisionSensor to notify about obstacles
+    public void NotifyObstacleInFront(bool detected)
+    {
+        if (warningLightEffect == null)
+        {
+            Debug.LogWarning("Warning Light Effect not assigned or found. Cannot toggle warning light.");
+            return;
+        }
+
+        if (detected)
+        {
+            // Call StartSpinAndLight, which also activates its lightContainerChild
+            warningLightEffect.StartSpinAndLight();
+            Debug.Log("Warning light ON: Obstacle detected.");
+        }
+        else
+        {
+            // Call StopSpinAndLight, which also deactivates its lightContainerChild
+            warningLightEffect.StopSpinAndLight();
+            Debug.Log("Warning light OFF: No obstacle detected.");
+        }
+    }
+
+
+    public void ApplyObstacleHitPenalty()
+    {
+        actualWaterRiseRate *= obstacleHitWaterRiseRateMultiplier;
+        Debug.Log($"Ship hit by obstacle! Water rise rate increased to: {actualWaterRiseRate:F2}");
     }
 
     public float GetNextLeakSpawnInterval()
     {
-        return Random.Range(minLeakSpawnTime, maxLeakSpawnTime);
+        return Random.Range(actualMinLeakSpawnTime, actualMaxLeakSpawnTime);
     }
 
     public bool IsGameOver()
@@ -278,6 +411,10 @@ public class GameManager : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.None;
         Time.timeScale = 0f;
+
+        // Ensure lights are off at game end (call the SpinningLightEffect's Stop method)
+        if (cautionLightEffect != null) cautionLightEffect.StopSpinAndLight();
+        if (warningLightEffect != null) warningLightEffect.StopSpinAndLight();
     }
 
     public void DecreasePatches()
@@ -285,10 +422,8 @@ public class GameManager : MonoBehaviour
         patchesHeldByPlayer--;
     }
 
-    // --- NEW: Method for stopping sounds and returning to the main menu ---
     private void ReturnToMainMenu()
     {
-        // Return to the MainMenu scene
         Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -298,6 +433,7 @@ public class GameManager : MonoBehaviour
     public void LoadScene(string sceneName)
     {
         Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.None;
         SceneManager.LoadScene(sceneName);
     }
 

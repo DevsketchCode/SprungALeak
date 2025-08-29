@@ -62,21 +62,27 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Obstacle.cs" />
+    <Compile Include="Assets\Scripts\CustomizationMenu.cs" />
     <Compile Include="Assets\Joystick Pack\Scripts\Joysticks\FloatingJoystick.cs" />
     <Compile Include="Assets\Scripts\AudioManager.cs" />
     <Compile Include="Assets\Scripts\Leak.cs" />
     <Compile Include="Assets\ResupplyPatches.cs" />
     <Compile Include="Assets\Scripts\SteeringManager.cs" />
+    <Compile Include="Assets\Scripts\ShipCollisionShakeEffect.cs" />
     <Compile Include="Assets\Joystick Pack\Scripts\Joysticks\FixedJoystick.cs" />
     <Compile Include="Assets\Scripts\ObstacleSpawner.cs" />
     <Compile Include="Assets\Scripts\SteeringTrigger.cs" />
+    <Compile Include="Assets\Scripts\YachtCollisionSensor.cs" />
+    <Compile Include="Assets\Scripts\MainMenu.cs" />
     <Compile Include="Assets\Joystick Pack\Scripts\Joysticks\DynamicJoystick.cs" />
     <Compile Include="Assets\ModularFirstPersonController\FirstPersonController\FirstPersonController.cs" />
     <Compile Include="Assets\Joystick Pack\Scripts\Base\Joystick.cs" />
     <Compile Include="Assets\Joystick Pack\Scripts\Joysticks\VariableJoystick.cs" />
+    <Compile Include="Assets\Scripts\GameSettingsManager.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\IndividualSpraySpawner.cs" />
     <Compile Include="Assets\Scripts\WaterMaskController.cs" />
+    <Compile Include="Assets\Scripts\SpinningLightEffects.cs" />
     <Compile Include="Assets\Scripts\ShipPositionToShader.cs" />
   </ItemGroup>
   <ItemGroup>

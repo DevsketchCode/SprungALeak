@@ -18,9 +18,9 @@ public class ResupplyPatches : MonoBehaviour
     void Update()
     {
         // Only check for a click if the player is nearby and patch inventory is not already full
-        if (playerIsNearby && Input.GetMouseButtonDown(0) && gameManager.patchesHeldByPlayer < gameManager.maxPatchesHeld)
+        if (playerIsNearby && Input.GetMouseButtonDown(0) && gameManager.patchesHeldByPlayer < gameManager.MaxPatchesHeld)
         {
-            gameManager.patchesHeldByPlayer = gameManager.maxPatchesHeld;
+            gameManager.patchesHeldByPlayer = gameManager.MaxPatchesHeld;
         }
     }
 
