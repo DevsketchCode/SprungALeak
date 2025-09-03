@@ -46,14 +46,19 @@ public class GameManager : MonoBehaviour
     public List<GameObject> activeLeaks = new List<GameObject>();
 
     // NEW: Warning Lights References
-    [Header("Warning Lights")]
+    [Header("Caution & Warning Lights")]
     [Tooltip("Parent GameObject of the Caution light (for leaks). Should have SpinningLightEffect script.")]
     public GameObject cautionLightParent;
     private SpinningLightEffect cautionLightEffect; // Cached component
+    public TextMeshProUGUI LeakDetectedText; // text to indicate leak warning
+    public TextMeshProUGUI floodedPercentageText; // text to show how much the boat is flooded
+    public TextMeshProUGUI floodingRiseRateText; // text to show current flooding rise rate
+    private float floodedPercentage;
 
     [Tooltip("Parent GameObject of the Warning light (for obstacles). Should have SpinningLightEffect script.")]
     public GameObject warningLightParent;
     private SpinningLightEffect warningLightEffect; // Cached component
+    public TextMeshProUGUI CollisionDetectedText; // text to indicate obstacle warning
 
     // === Private Variables ===
     private TextMeshProUGUI leaksText;
@@ -194,6 +199,11 @@ public class GameManager : MonoBehaviour
         }
         currentWaterHeight = waterPlane.transform.position.y;
         maxWaterLevel = currentWaterHeight + maxWaterHeight;
+        floodedPercentage = 0f;
+        LeakDetectedText.text = "";
+        floodedPercentageText.text = "";
+        floodingRiseRateText.text = "";
+        CollisionDetectedText.text = "";
 
         // Initialize lights to off (call the SpinningLightEffect's Stop method)
         if (cautionLightEffect != null) cautionLightEffect.StopSpinAndLight();
@@ -236,9 +246,22 @@ public class GameManager : MonoBehaviour
                     cautionLightEffect.StartSpinAndLight();
                 }
 
+                // Set UI Displays
+                if (LeakDetectedText != null)
+                {
+                    if(activeLeaks.Count == 1)
+                        LeakDetectedText.text = "1 Leak Detected!";
+                    else if (activeLeaks.Count > 1)
+                        LeakDetectedText.text = activeLeaks.Count + " Leaks Detected!";
+                }
+
                 float waterLevelIncrease = actualWaterRiseRate * activeLeaks.Count * Time.deltaTime;
                 currentWaterHeight += waterLevelIncrease;
                 waterPlane.transform.position = new Vector3(waterPlane.transform.position.x, currentWaterHeight, waterPlane.transform.position.z);
+                Debug.Log($"Water height increased by {waterLevelIncrease:F4}, CurrentWaterHeight {currentWaterHeight:F4}, MaxWaterLevel: {maxWaterLevel:F4}. GameManager MaxWaterHeight: {maxWaterHeight:F4} ");
+                Debug.Log("ActualWaterRiseRate" + actualWaterRiseRate);
+                floodedPercentage =( (maxWaterHeight - (maxWaterLevel - currentWaterHeight)) / maxWaterHeight) * 100;
+                // Debug.Log($"Flooded Percentage: {floodedPercentage:F2}%");
 
                 if (currentWaterHeight >= maxWaterLevel)
                 {
@@ -253,6 +276,24 @@ public class GameManager : MonoBehaviour
                     // Call StopSpinAndLight, which also deactivates its lightContainerChild
                     cautionLightEffect.StopSpinAndLight();
                 }
+
+                // Set UI Displays
+                if (LeakDetectedText != null)
+                {
+                    LeakDetectedText.text = "";
+                }
+            }
+
+            if (floodedPercentage > 0)
+            {
+                floodedPercentageText.text = $"Flooded: {floodedPercentage:F1}%";
+                floodingRiseRateText.text = $"Flood Rise Rate: {(actualWaterRiseRate):F2}% per second";
+                Debug.Log($"Flooded Percentage: {floodedPercentage:F2}%, Flood Rise Rate: {(actualWaterRiseRate):F2}% per second, ActiveLeaks: {activeLeaks.Count}");
+            }
+            else
+            {
+                floodedPercentageText.text = "";
+                floodingRiseRateText.text = "";
             }
         }
 
@@ -343,12 +384,25 @@ public class GameManager : MonoBehaviour
             // Call StartSpinAndLight, which also activates its lightContainerChild
             warningLightEffect.StartSpinAndLight();
             Debug.Log("Warning light ON: Obstacle detected.");
+
+            // Set UI Displays
+            if (CollisionDetectedText != null)
+            {
+                CollisionDetectedText.text = "Collision Detected!";
+            }
+
         }
         else
         {
             // Call StopSpinAndLight, which also deactivates its lightContainerChild
             warningLightEffect.StopSpinAndLight();
             Debug.Log("Warning light OFF: No obstacle detected.");
+
+            // Set UI Displays
+            if (CollisionDetectedText != null)
+            {
+                CollisionDetectedText.text = "";
+            }
         }
     }
 
