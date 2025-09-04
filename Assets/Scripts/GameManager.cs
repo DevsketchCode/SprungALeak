@@ -403,7 +403,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // NEW: Method for YachtCollisionSensor to notify about obstacles
+    // Method for YachtCollisionSensor to notify about obstacles
     public void NotifyObstacleInFront(bool detected)
     {
         if (warningLightEffect == null)
@@ -421,7 +421,7 @@ public class GameManager : MonoBehaviour
             // Set UI Displays
             if (CollisionDetectedText != null)
             {
-                CollisionDetectedText.text = "Collision Detected!";
+                CollisionDetectedText.text = "Incoming Collision Detected";
             }
         }
         else

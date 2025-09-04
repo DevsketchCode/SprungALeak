@@ -6,32 +6,19 @@ public class Obstacle : MonoBehaviour
     private float speed;
 
     // Reference to the ObstacleSpawner that created this obstacle
-    public ObstacleSpawner parentSpawner;
+    private ObstacleSpawner parentSpawner;
 
-    // NEW: Reference to the YachtCollisionSensor to notify when destroyed
-    public YachtCollisionSensor yachtCollisionSensor;
+    // Reference to the YachtCollisionSensor to notify when destroyed
+    private YachtCollisionSensor yachtCollisionSensor;
 
-    void Awake()
+    // Initialization method to be called by the spawner.
+    // This fixes the 'parentSpawner is null' error in Awake().
+    public void Initialize(ObstacleSpawner spawner, Vector3 direction, float moveSpeed, YachtCollisionSensor sensor)
     {
-        // This is now handled by the Spawner before the object is created.
-        // If it's null, we know something went wrong in initialization.
-        if (parentSpawner == null)
-        {
-            Debug.LogError("Obstacle not initialized by a spawner. It will not function correctly.");
-        }
-
-        // We find the YachtCollisionSensor on awake
-        yachtCollisionSensor = FindObjectOfType<YachtCollisionSensor>();
-        if (yachtCollisionSensor == null)
-        {
-            Debug.LogError("YachtCollisionSensor not found in scene. Obstacle cannot decrement its count.");
-        }
-    }
-
-    public void SetProperties(Vector3 direction, float moveSpeed)
-    {
+        parentSpawner = spawner;
         moveDirection = direction;
         speed = moveSpeed;
+        yachtCollisionSensor = sensor;
     }
 
     void Update()
@@ -66,6 +53,16 @@ public class Obstacle : MonoBehaviour
         {
             // Optional debug log for when we hit something else.
             Debug.Log($"Obstacle {gameObject.name} collided with an object that is not the player's ship. Ignoring.");
+        }
+    }
+
+    // This is the critical method that was missing. It's called automatically by Unity
+    // just before the object is destroyed.
+    void OnDestroy()
+    {
+        if (yachtCollisionSensor != null)
+        {
+            yachtCollisionSensor.DecrementObstacleCount();
         }
     }
 }

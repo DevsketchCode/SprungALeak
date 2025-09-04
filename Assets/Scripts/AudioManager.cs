@@ -15,6 +15,8 @@ public class AudioManager : MonoBehaviour
     public AudioMixerGroup crackSoundGroup;
     public AudioMixerGroup leakGroup;
     public AudioMixerGroup patchGroup;
+    public AudioMixerGroup boatHornGroup;
+    public AudioMixerGroup bellGroup;
 
     [Header("Audio Sources")]
     public AudioSource musicSource;
@@ -23,6 +25,8 @@ public class AudioManager : MonoBehaviour
     public AudioSource crackSoundSource;
     public AudioSource leakSource;
     public AudioSource patchSource;
+    public AudioSource boatHornSource;
+    public AudioSource bellSource;
 
     [Header("Audio Clips")]
     public AudioClip backgroundMusic;
@@ -31,6 +35,8 @@ public class AudioManager : MonoBehaviour
     public AudioClip crackSound;
     public AudioClip leakSpawnSound;
     public AudioClip patchSound;
+    public AudioClip boatHornSound;
+    public AudioClip bellSound;
 
     void Awake()
     {
@@ -53,6 +59,8 @@ public class AudioManager : MonoBehaviour
         if (crackSoundSource != null) crackSoundSource.outputAudioMixerGroup = crackSoundGroup;
         if (leakSource != null) leakSource.outputAudioMixerGroup = leakGroup;
         if (patchSource!= null) patchSource.outputAudioMixerGroup = patchGroup;
+        if (boatHornSource != null) boatHornSource.outputAudioMixerGroup = boatHornGroup;
+        if (bellSource != null) bellSource.outputAudioMixerGroup = bellGroup;
 
         PlayBackgroundMusic();
         PlayAmbience();
@@ -111,6 +119,21 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    public void PlayBoatHornSound()
+    {
+        if (boatHornSource != null && boatHornSound != null)
+        {
+            boatHornSource.PlayOneShot(boatHornSound);
+        }
+    }
+    public void PlayBellSound()
+    {
+        if (bellSource != null && bellSound != null)
+        {
+            bellSource.PlayOneShot(bellSound);
+        }
+    }
+
     // --- New Method to Stop All Leak-Related Sounds ---
     public void StopAllLeakSounds()
     {
@@ -129,6 +152,14 @@ public class AudioManager : MonoBehaviour
         if (patchSource != null && patchSource.isPlaying)
         {
             patchSource.Stop();
+        }
+        if (boatHornSource != null && boatHornSource.isPlaying)
+        {
+            boatHornSource.Stop();
+        }
+        if (bellSource != null && bellSource.isPlaying)
+        {
+            bellSource.Stop();
         }
         if (musicSource != null)
         {
@@ -179,5 +210,13 @@ public class AudioManager : MonoBehaviour
     public void SetPatchVolume(float volume)
     {
         mainMixer.SetFloat("PatchVolume", Mathf.Log10(volume) * 20);
+    }
+    public void SetBoatHornVolume(float volume)
+    {
+        mainMixer.SetFloat("BoatHornVolume", Mathf.Log10(volume) * 20);
+    }
+    public void SetBellVolume(float volume)
+    {
+        mainMixer.SetFloat("BellVolume", Mathf.Log10(volume) * 20);
     }
 }

@@ -5,6 +5,8 @@ public class YachtCollisionSensor : MonoBehaviour
 {
     [Tooltip("Reference to the GameManager to notify about obstacles.")]
     public GameManager gameManager;
+    [Tooltip("Reference to the AudioManager to notify player audibly about obstacles.")]
+    public AudioManager audioManager;
 
     private int obstaclesInTrigger = 0; // Counter for obstacles currently inside the trigger
 
@@ -48,6 +50,11 @@ public class YachtCollisionSensor : MonoBehaviour
                 {
                     gameManager.NotifyObstacleInFront(true); // Notify GameManager an obstacle is detected
                 }
+
+                if (audioManager != null)
+                {
+                    audioManager.PlayBoatHornSound(); // Play warning sound
+                }
             }
         }
     }
@@ -77,6 +84,15 @@ public class YachtCollisionSensor : MonoBehaviour
             if (gameManager != null)
             {
                 gameManager.NotifyObstacleInFront(false); // Notify GameManager no more obstacles
+            }
+
+            // Stop warning sound
+            if (audioManager != null)
+            {
+                if (audioManager.boatHornSource.isPlaying)
+                {
+                    audioManager.boatHornSource.Stop();
+                }
             }
         }
     }
