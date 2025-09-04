@@ -14,8 +14,15 @@ public class GameManager : MonoBehaviour
     // Public property to expose maxPatchesHeld to other scripts
     public int MaxPatchesHeld { get { return maxPatchesHeld; } }
 
+    // Public property to expose the CURRENT total water rise rate for UI
+    public float CurrentWaterRiseRate { get; private set; }
+
+    // Public property to expose the total collision count for UI
+    public int collisionCount { get; private set; }
+
     // Public reference to the AudioSource for the leak sound
     [Header("Audio")]
+    public AudioSource crackSound;
     public AudioSource leakSound;
 
     [Header("Initial Game Delay")]
@@ -32,6 +39,14 @@ public class GameManager : MonoBehaviour
     public GameObject gameTimerPanel;
     public GameObject endGameMessagePanel;
 
+    [Header("UI Text Displays")]
+    public TextMeshProUGUI floodedPercentageText; // text to show how much the boat is flooded
+    public TextMeshProUGUI floodingRiseRateText; // text to show current flooding rise rate
+    public TextMeshProUGUI LeakDetectedText; // text to indicate leak warning
+    public TextMeshProUGUI CollisionDetectedText; // text to indicate obstacle warning
+    [Tooltip("Drag the TextMeshPro text for collision count here.")]
+    public TextMeshProUGUI collisionsText;
+
     [Header("Player Controller Reference")]
     public FirstPersonController playerController;
 
@@ -40,8 +55,8 @@ public class GameManager : MonoBehaviour
     public ObstacleSpawner obstacleSpawner; // Reference to the Obstacle Spawner
 
     [Header("Obstacle Hit Settings")]
-    [Tooltip("Multiplier for water rise rate when the ship is hit by an obstacle. (e.g., 1.2 for 20% increase)")]
-    public float obstacleHitWaterRiseRateMultiplier = 1.2f;
+    [Tooltip("The base water rise rate per collision. Total penalty is this value multiplied by the number of times the ship has been hit.")]
+    public float waterRiseRatePerCollision = 0.05f;
 
     public List<GameObject> activeLeaks = new List<GameObject>();
 
@@ -50,15 +65,11 @@ public class GameManager : MonoBehaviour
     [Tooltip("Parent GameObject of the Caution light (for leaks). Should have SpinningLightEffect script.")]
     public GameObject cautionLightParent;
     private SpinningLightEffect cautionLightEffect; // Cached component
-    public TextMeshProUGUI LeakDetectedText; // text to indicate leak warning
-    public TextMeshProUGUI floodedPercentageText; // text to show how much the boat is flooded
-    public TextMeshProUGUI floodingRiseRateText; // text to show current flooding rise rate
     private float floodedPercentage;
 
     [Tooltip("Parent GameObject of the Warning light (for obstacles). Should have SpinningLightEffect script.")]
     public GameObject warningLightParent;
     private SpinningLightEffect warningLightEffect; // Cached component
-    public TextMeshProUGUI CollisionDetectedText; // text to indicate obstacle warning
 
     // === Private Variables ===
     private TextMeshProUGUI leaksText;
@@ -237,60 +248,56 @@ public class GameManager : MonoBehaviour
                 }
             }
 
+            // Calculate the total water rise rate based on active leaks and collisions
+            CurrentWaterRiseRate = (actualWaterRiseRate * activeLeaks.Count) + (waterRiseRatePerCollision * collisionCount);
+
+            // Update UI displays for leaks and flooding
             if (activeLeaks.Count > 0)
             {
                 // Manage Caution Light for leaks: Start spinning and enable child lights
                 if (cautionLightEffect != null)
                 {
-                    // Call StartSpinAndLight, which also activates its lightContainerChild
                     cautionLightEffect.StartSpinAndLight();
                 }
 
-                // Set UI Displays
                 if (LeakDetectedText != null)
                 {
-                    if(activeLeaks.Count == 1)
+                    if (activeLeaks.Count == 1)
                         LeakDetectedText.text = "1 Leak Detected!";
                     else if (activeLeaks.Count > 1)
                         LeakDetectedText.text = activeLeaks.Count + " Leaks Detected!";
                 }
-
-                float waterLevelIncrease = actualWaterRiseRate * activeLeaks.Count * Time.deltaTime;
-                currentWaterHeight += waterLevelIncrease;
-                waterPlane.transform.position = new Vector3(waterPlane.transform.position.x, currentWaterHeight, waterPlane.transform.position.z);
-                Debug.Log($"Water height increased by {waterLevelIncrease:F4}, CurrentWaterHeight {currentWaterHeight:F4}, MaxWaterLevel: {maxWaterLevel:F4}. GameManager MaxWaterHeight: {maxWaterHeight:F4} ");
-                Debug.Log("ActualWaterRiseRate" + actualWaterRiseRate);
-                floodedPercentage =( (maxWaterHeight - (maxWaterLevel - currentWaterHeight)) / maxWaterHeight) * 100;
-                // Debug.Log($"Flooded Percentage: {floodedPercentage:F2}%");
-
-                if (currentWaterHeight >= maxWaterLevel)
-                {
-                    EndGame(false);
-                }
             }
             else // No active leaks
             {
-                // Manage Caution Light for leaks: Stop spinning and disable child lights
                 if (cautionLightEffect != null)
                 {
-                    // Call StopSpinAndLight, which also deactivates its lightContainerChild
                     cautionLightEffect.StopSpinAndLight();
                 }
 
-                // Set UI Displays
                 if (LeakDetectedText != null)
                 {
                     LeakDetectedText.text = "";
                 }
             }
 
-            if (floodedPercentage > 0)
+            if (CurrentWaterRiseRate > 0)
             {
+                // Increase water height using the NEW combined rate
+                currentWaterHeight += CurrentWaterRiseRate * Time.deltaTime;
+                waterPlane.transform.position = new Vector3(waterPlane.transform.position.x, currentWaterHeight, waterPlane.transform.position.z);
+
+                // Calculate and display flooded percentage
+                floodedPercentage = ((maxWaterHeight - (maxWaterLevel - currentWaterHeight)) / maxWaterHeight) * 100;
                 floodedPercentageText.text = $"Flooded: {floodedPercentage:F1}%";
-                floodingRiseRateText.text = $"Flood Rise Rate: {(actualWaterRiseRate):F2}% per second";
-                Debug.Log($"Flooded Percentage: {floodedPercentage:F2}%, Flood Rise Rate: {(actualWaterRiseRate):F2}% per second, ActiveLeaks: {activeLeaks.Count}");
+                floodingRiseRateText.text = $"Flood Rise Rate: {CurrentWaterRiseRate:F2} m/s"; // Display the new combined rate
+
+                if (currentWaterHeight >= maxWaterLevel)
+                {
+                    EndGame(false);
+                }
             }
-            else
+            else // Water rise rate is 0
             {
                 floodedPercentageText.text = "";
                 floodingRiseRateText.text = "";
@@ -324,6 +331,18 @@ public class GameManager : MonoBehaviour
                 timerText.text = string.Format("Time Until Help Arrives: {0:00}:{1:00}", minutes, seconds);
             }
         }
+        // Update the collision count UI
+        if (collisionsText != null)
+        {
+            if (collisionCount > 0)
+            {
+                collisionsText.text = $"Collisions: {collisionCount}";
+            }
+            else
+            {
+                collisionsText.text = "";
+            }
+        }
     }
 
     public void StartGame()
@@ -341,6 +360,21 @@ public class GameManager : MonoBehaviour
     {
         activeLeaks.Add(leak);
         Debug.Log("Leak added. Total leaks: " + activeLeaks.Count);
+
+        // Play the cracking sound one time when the leak is created
+        if (crackSound != null)
+        {
+            crackSound.Play();
+            Debug.Log("Playing crack sound for new leak: " + crackSound.isPlaying);
+        }
+
+        if (activeLeaks.Count == 1)
+        {
+            if (leakSound != null && !leakSound.isPlaying)
+            {
+                leakSound.Play();
+            }
+        }
 
         // Caution light logic is now in Update() to continuously check activeLeaks.Count
     }
@@ -367,7 +401,6 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
-        // Caution light logic is now in Update() to continuously check activeLeaks.Count
     }
 
     // NEW: Method for YachtCollisionSensor to notify about obstacles
@@ -390,7 +423,6 @@ public class GameManager : MonoBehaviour
             {
                 CollisionDetectedText.text = "Collision Detected!";
             }
-
         }
         else
         {
@@ -406,11 +438,12 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
     public void ApplyObstacleHitPenalty()
     {
-        actualWaterRiseRate *= obstacleHitWaterRiseRateMultiplier;
-        Debug.Log($"Ship hit by obstacle! Water rise rate increased to: {actualWaterRiseRate:F2}");
+        collisionCount++;
+        Debug.Log($"Ship hit by obstacle! Collision Count: {collisionCount}. Water rise rate will increase.");
+
+        // Note: The water rise rate is now calculated dynamically in Update()
     }
 
     public float GetNextLeakSpawnInterval()

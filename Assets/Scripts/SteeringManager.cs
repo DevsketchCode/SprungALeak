@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class SteeringManager : MonoBehaviour
 {
+    // Public properties
     public Transform steeringObject;
     public Transform captainPosition;
     public float steeringSpeed = 5f;
@@ -9,10 +10,30 @@ public class SteeringManager : MonoBehaviour
     public ObstacleSpawner obstacleSpawner;
     public MonoBehaviour playerMovementScript;
 
+    // Camera references for the player and steering views
+    public Camera playerCamera;
+    public Camera steeringCamera;
+
+    // A public property to allow other scripts to safely read the steering state.
+    public bool IsSteering { get { return isSteering; } }
+
+    // Private fields
     private bool isSteering = false;
     private bool isPlayerInRange = false;
-    private Vector3 originalPlayerPosition;
-    private Quaternion originalPlayerRotation;
+
+    // We'll add a Start() method to ensure camera state is correct from the beginning.
+    void Start()
+    {
+        // Make sure the player camera is active and the steering camera is not.
+        if (playerCamera != null)
+        {
+            playerCamera.enabled = true;
+        }
+        if (steeringCamera != null)
+        {
+            steeringCamera.enabled = false;
+        }
+    }
 
     void Update()
     {
@@ -49,31 +70,48 @@ public class SteeringManager : MonoBehaviour
         isPlayerInRange = inRange;
     }
 
-    void EnterSteeringMode()
+    // Making these methods public so FirstPersonController can access them.
+    public void EnterSteeringMode()
     {
         isSteering = true;
-        originalPlayerPosition = transform.position;
-        originalPlayerRotation = transform.rotation;
 
-        transform.position = captainPosition.position;
-        transform.rotation = captainPosition.rotation;
-
+        // Disable the player's movement script to "freeze" their position
         if (playerMovementScript != null)
         {
             playerMovementScript.enabled = false;
         }
+
+        // Switch to the steering camera
+        if (playerCamera != null)
+        {
+            playerCamera.enabled = false;
+        }
+        if (steeringCamera != null)
+        {
+            steeringCamera.enabled = true;
+        }
     }
 
-    void ExitSteeringMode()
+    // Making these methods public so FirstPersonController can access them.
+    public void ExitSteeringMode()
     {
         isSteering = false;
+
+        // Re-enable the player's movement script
         if (playerMovementScript != null)
         {
             playerMovementScript.enabled = true;
         }
 
-        transform.position = originalPlayerPosition;
-        transform.rotation = originalPlayerRotation;
+        // Switch back to the player's camera
+        if (playerCamera != null)
+        {
+            playerCamera.enabled = true;
+        }
+        if (steeringCamera != null)
+        {
+            steeringCamera.enabled = false;
+        }
 
         // Reset the local rotation when exiting steering mode.
         steeringObject.localRotation = Quaternion.identity;

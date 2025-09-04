@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.UIElements;
 
 public class AudioManager : MonoBehaviour
 {
@@ -9,18 +10,25 @@ public class AudioManager : MonoBehaviour
     public AudioMixer mainMixer;
     public AudioMixerGroup musicGroup;
     public AudioMixerGroup ambienceGroup;
+    public AudioMixerGroup soundEffectsGroup;
+    public AudioMixerGroup collisionSoundGroup;
+    public AudioMixerGroup crackSoundGroup;
     public AudioMixerGroup leakGroup;
     public AudioMixerGroup patchGroup;
 
     [Header("Audio Sources")]
     public AudioSource musicSource;
     public AudioSource ambienceSource;
+    public AudioSource collisionSoundSource;
+    public AudioSource crackSoundSource;
     public AudioSource leakSource;
     public AudioSource patchSource;
 
     [Header("Audio Clips")]
     public AudioClip backgroundMusic;
     public AudioClip backgroundAmbience;
+    public AudioClip collisionSound;
+    public AudioClip crackSound;
     public AudioClip leakSpawnSound;
     public AudioClip patchSound;
 
@@ -41,6 +49,8 @@ public class AudioManager : MonoBehaviour
     {
         if (musicSource != null) musicSource.outputAudioMixerGroup = musicGroup;
         if (ambienceSource != null) ambienceSource.outputAudioMixerGroup = ambienceGroup;
+        if (collisionSoundSource != null) collisionSoundSource.outputAudioMixerGroup = collisionSoundGroup;
+        if (crackSoundSource != null) crackSoundSource.outputAudioMixerGroup = crackSoundGroup;
         if (leakSource != null) leakSource.outputAudioMixerGroup = leakGroup;
         if (patchSource!= null) patchSource.outputAudioMixerGroup = patchGroup;
 
@@ -69,6 +79,22 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    public void PlayCollisionSound()
+    {
+        if (collisionSoundSource != null && collisionSound != null)
+        {
+            collisionSoundSource.PlayOneShot(collisionSound);
+        }
+    }
+
+    public void PlayCrackSound()
+    {
+        if (crackSoundSource != null && crackSound != null)
+        {
+            crackSoundSource.PlayOneShot(crackSound);
+        }
+    }
+
     public void PlayLeakSpawnSound()
     {
         if (leakSource != null && leakSpawnSound != null)
@@ -88,6 +114,14 @@ public class AudioManager : MonoBehaviour
     // --- New Method to Stop All Leak-Related Sounds ---
     public void StopAllLeakSounds()
     {
+        if (collisionSoundSource != null && collisionSoundSource.isPlaying)
+        {
+            collisionSoundSource.Stop();
+        }
+        if (crackSoundSource != null && crackSoundSource.isPlaying)
+        {
+            crackSoundSource.Stop();
+        }
         if (leakSource != null && leakSource.isPlaying)
         {
             leakSource.Stop();
@@ -120,6 +154,21 @@ public class AudioManager : MonoBehaviour
     public void SetAmbienceVolume(float volume)
     {
         mainMixer.SetFloat("AmbienceVolume", Mathf.Log10(volume) * 20);
+    }
+
+    public void SetSoundEffectsGroupVolume(float volume)
+    {
+        mainMixer.SetFloat("SoundEffectsGroupVolume", Mathf.Log10(volume) * 20);
+    }
+
+    public void SetCollisionSoundVolume(float volume)
+    {
+        mainMixer.SetFloat("CollisionSoundVolume", Mathf.Log10(volume) * 20);
+    }
+
+    public void SetCrackSoundVolume(float volume)
+    {
+        mainMixer.SetFloat("CrackSoundVolume", Mathf.Log10(volume) * 20);
     }
 
     public void SetLeakVolume(float volume)

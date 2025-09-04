@@ -3,6 +3,7 @@
 // CHANGES || version VERSION
 //
 // "Enable/Disable Headbob, Changed look rotations - should result in reduced camera jitters" || version 1.0.1
+// "Added Camera snap functionality for driving" || version 1.1.0
 
 using System.Collections;
 using System.Collections.Generic;
@@ -10,8 +11,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 #if UNITY_EDITOR
-    using UnityEditor;
-    using System.Net;
+using UnityEditor;
+using System.Net;
 #endif
 
 public class FirstPersonController : MonoBehaviour
@@ -131,6 +132,18 @@ public class FirstPersonController : MonoBehaviour
 
     #endregion
 
+    // NEW: Driving Variables
+    [Header("Driving Settings")]
+    public Transform drivePoint;
+    public GameObject boat;
+    public float snapSpeed = 5f;
+    private bool isDriving = false;
+    private SteeringManager steeringManager;
+
+    [Header("UI & Interactions")]
+    public Text interactText;
+
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -147,16 +160,25 @@ public class FirstPersonController : MonoBehaviour
             sprintRemaining = sprintDuration;
             sprintCooldownReset = sprintCooldown;
         }
+
+        if (boat != null)
+        {
+            steeringManager = boat.GetComponent<SteeringManager>();
+            if (steeringManager == null)
+            {
+                Debug.LogError("SteeringManager component not found on the boat GameObject.");
+            }
+        }
     }
 
     void Start()
     {
-        if(lockCursor)
+        if (lockCursor)
         {
             Cursor.lockState = CursorLockMode.Locked;
         }
 
-        if(crosshair)
+        if (crosshair)
         {
             crosshairObject.sprite = crosshairImage;
             crosshairObject.color = crosshairColor;
@@ -170,7 +192,7 @@ public class FirstPersonController : MonoBehaviour
 
         sprintBarCG = GetComponentInChildren<CanvasGroup>();
 
-        if(useSprintBar)
+        if (useSprintBar)
         {
             sprintBarBG.gameObject.SetActive(true);
             sprintBar.gameObject.SetActive(true);
@@ -184,7 +206,7 @@ public class FirstPersonController : MonoBehaviour
             sprintBarBG.rectTransform.sizeDelta = new Vector3(sprintBarWidth, sprintBarHeight, 0f);
             sprintBar.rectTransform.sizeDelta = new Vector3(sprintBarWidth - 2, sprintBarHeight - 2, 0f);
 
-            if(hideBarWhenFull)
+            if (hideBarWhenFull)
             {
                 sprintBarCG.alpha = 0;
             }
@@ -202,10 +224,41 @@ public class FirstPersonController : MonoBehaviour
 
     private void Update()
     {
+        // NEW: Handle interaction with the boat
+        if (Input.GetKeyDown(KeyCode.E) && boat != null)
+        {
+            float distanceToBoat = Vector3.Distance(transform.position, boat.transform.position);
+
+            if (distanceToBoat <= 5f || isDriving)
+            {
+                ToggleDrivingMode();
+            }
+        }
+
+        // NEW: Always update interact text based on distance
+        if (boat != null && interactText != null)
+        {
+            float distance = Vector3.Distance(transform.position, boat.transform.position);
+            if (distance <= 5f && !isDriving)
+            {
+                interactText.text = "Press 'E' to drive the ship.";
+                interactText.gameObject.SetActive(true);
+            }
+            else if (isDriving)
+            {
+                interactText.text = "Press 'E' to exit the ship.";
+                interactText.gameObject.SetActive(true);
+            }
+            else
+            {
+                interactText.gameObject.SetActive(false);
+            }
+        }
+
         #region Camera
 
-        // Control camera movement
-        if(cameraCanMove)
+        // NEW: Check if we are driving before applying normal mouse look
+        if (cameraCanMove && !isDriving)
         {
             yaw = transform.localEulerAngles.y + Input.GetAxis("Mouse X") * mouseSensitivity;
 
@@ -225,6 +278,15 @@ public class FirstPersonController : MonoBehaviour
             transform.localEulerAngles = new Vector3(0, yaw, 0);
             playerCamera.transform.localEulerAngles = new Vector3(pitch, 0, 0);
         }
+        else if (isDriving && drivePoint != null)
+        {
+            // NEW: When driving, snap camera to the drivePoint rotation
+            playerCamera.transform.rotation = Quaternion.Slerp(playerCamera.transform.rotation, drivePoint.rotation, Time.deltaTime * snapSpeed);
+            playerCamera.transform.position = Vector3.Lerp(playerCamera.transform.position, drivePoint.position, Time.deltaTime * snapSpeed);
+
+            // Also apply the new look rotation to the player body to match the ship's forward direction
+            transform.rotation = Quaternion.Slerp(transform.rotation, drivePoint.rotation, Time.deltaTime * snapSpeed);
+        }
 
         #region Camera Zoom
 
@@ -232,7 +294,7 @@ public class FirstPersonController : MonoBehaviour
         {
             // Changes isZoomed when key is pressed
             // Behavior for toogle zoom
-            if(Input.GetKeyDown(zoomKey) && !holdToZoom && !isSprinting)
+            if (Input.GetKeyDown(zoomKey) && !holdToZoom && !isSprinting)
             {
                 if (!isZoomed)
                 {
@@ -246,24 +308,24 @@ public class FirstPersonController : MonoBehaviour
 
             // Changes isZoomed when key is pressed
             // Behavior for hold to zoom
-            if(holdToZoom && !isSprinting)
+            if (holdToZoom && !isSprinting)
             {
-                if(Input.GetKeyDown(zoomKey))
+                if (Input.GetKeyDown(zoomKey))
                 {
                     isZoomed = true;
                 }
-                else if(Input.GetKeyUp(zoomKey))
+                else if (Input.GetKeyUp(zoomKey))
                 {
                     isZoomed = false;
                 }
             }
 
             // Lerps camera.fieldOfView to allow for a smooth transistion
-            if(isZoomed)
+            if (isZoomed)
             {
                 playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, zoomFOV, zoomStepTime * Time.deltaTime);
             }
-            else if(!isZoomed && !isSprinting)
+            else if (!isZoomed && !isSprinting)
             {
                 playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, fov, zoomStepTime * Time.deltaTime);
             }
@@ -274,15 +336,15 @@ public class FirstPersonController : MonoBehaviour
 
         #region Sprint
 
-        if(enableSprint)
+        if (enableSprint)
         {
-            if(isSprinting)
+            if (isSprinting)
             {
                 isZoomed = false;
                 playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, sprintFOV, sprintFOVStepTime * Time.deltaTime);
 
                 // Drain sprint remaining while sprinting
-                if(!unlimitedSprint)
+                if (!unlimitedSprint)
                 {
                     sprintRemaining -= 1 * Time.deltaTime;
                     if (sprintRemaining <= 0)
@@ -300,7 +362,7 @@ public class FirstPersonController : MonoBehaviour
 
             // Handles sprint cooldown 
             // When sprint remaining == 0 stops sprint ability until hitting cooldown
-            if(isSprintCooldown)
+            if (isSprintCooldown)
             {
                 sprintCooldown -= 1 * Time.deltaTime;
                 if (sprintCooldown <= 0)
@@ -314,7 +376,7 @@ public class FirstPersonController : MonoBehaviour
             }
 
             // Handles sprintBar 
-            if(useSprintBar && !unlimitedSprint)
+            if (useSprintBar && !unlimitedSprint)
             {
                 float sprintRemainingPercent = sprintRemaining / sprintDuration;
                 sprintBar.transform.localScale = new Vector3(sprintRemainingPercent, 1f, 1f);
@@ -326,7 +388,7 @@ public class FirstPersonController : MonoBehaviour
         #region Jump
 
         // Gets input and calls jump method
-        if(enableJump && Input.GetKeyDown(jumpKey) && isGrounded)
+        if (enableJump && Input.GetKeyDown(jumpKey) && isGrounded)
         {
             Jump();
         }
@@ -337,17 +399,17 @@ public class FirstPersonController : MonoBehaviour
 
         if (enableCrouch)
         {
-            if(Input.GetKeyDown(crouchKey) && !holdToCrouch)
+            if (Input.GetKeyDown(crouchKey) && !holdToCrouch)
             {
                 Crouch();
             }
-            
-            if(Input.GetKeyDown(crouchKey) && holdToCrouch)
+
+            if (Input.GetKeyDown(crouchKey) && holdToCrouch)
             {
                 isCrouched = false;
                 Crouch();
             }
-            else if(Input.GetKeyUp(crouchKey) && holdToCrouch)
+            else if (Input.GetKeyUp(crouchKey) && holdToCrouch)
             {
                 isCrouched = true;
                 Crouch();
@@ -358,7 +420,7 @@ public class FirstPersonController : MonoBehaviour
 
         CheckGround();
 
-        if(enableHeadBob)
+        if (enableHeadBob)
         {
             HeadBob();
         }
@@ -469,7 +531,7 @@ public class FirstPersonController : MonoBehaviour
         }
 
         // When crouched and using toggle system, will uncrouch for a jump
-        if(isCrouched && !holdToCrouch)
+        if (isCrouched && !holdToCrouch)
         {
             Crouch();
         }
@@ -479,7 +541,7 @@ public class FirstPersonController : MonoBehaviour
     {
         // Stands player up to full height
         // Brings walkSpeed back up to original speed
-        if(isCrouched)
+        if (isCrouched)
         {
             transform.localScale = new Vector3(originalScale.x, originalScale.y, originalScale.z);
             walkSpeed /= speedReduction;
@@ -499,10 +561,10 @@ public class FirstPersonController : MonoBehaviour
 
     private void HeadBob()
     {
-        if(isWalking)
+        if (isWalking)
         {
             // Calculates HeadBob speed during sprint
-            if(isSprinting)
+            if (isSprinting)
             {
                 timer += Time.deltaTime * (bobSpeed + sprintSpeed);
             }
@@ -526,15 +588,54 @@ public class FirstPersonController : MonoBehaviour
             joint.localPosition = new Vector3(Mathf.Lerp(joint.localPosition.x, jointOriginalPos.x, Time.deltaTime * bobSpeed), Mathf.Lerp(joint.localPosition.y, jointOriginalPos.y, Time.deltaTime * bobSpeed), Mathf.Lerp(joint.localPosition.z, jointOriginalPos.z, Time.deltaTime * bobSpeed));
         }
     }
+
+    // Function to toggle between walking and driving mode
+    private void ToggleDrivingMode()
+    {
+        isDriving = !isDriving;
+        playerCanMove = !isDriving;
+
+        // If a SteeringManager exists, update its state using its public methods
+        if (steeringManager != null)
+        {
+            if (isDriving)
+            {
+                steeringManager.EnterSteeringMode();
+            }
+            else
+            {
+                steeringManager.ExitSteeringMode();
+            }
+        }
+
+        if (isDriving)
+        {
+            if (lockCursor)
+            {
+                Cursor.lockState = CursorLockMode.None;
+            }
+        }
+        else
+        {
+            if (lockCursor)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+            }
+
+            // Reset the yaw and pitch so the mouse look is correctly aligned when exiting the vehicle.
+            yaw = transform.localEulerAngles.y;
+            pitch = playerCamera.transform.localEulerAngles.x;
+        }
+    }
 }
 
 
 
 // Custom Editor
 #if UNITY_EDITOR
-    [CustomEditor(typeof(FirstPersonController)), InitializeOnLoadAttribute]
-    public class FirstPersonControllerEditor : Editor
-    {
+[CustomEditor(typeof(FirstPersonController)), InitializeOnLoadAttribute]
+public class FirstPersonControllerEditor : Editor
+{
     FirstPersonController fpc;
     SerializedObject SerFPC;
 
@@ -551,7 +652,7 @@ public class FirstPersonController : MonoBehaviour
         EditorGUILayout.Space();
         GUILayout.Label("Modular First Person Controller", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold, fontSize = 16 });
         GUILayout.Label("By Jess Case", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Normal, fontSize = 12 });
-        GUILayout.Label("version 1.0.1", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Normal, fontSize = 12 });
+        GUILayout.Label("version 1.1.0", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Normal, fontSize = 12 });
         EditorGUILayout.Space();
 
         #region Camera Setup
@@ -575,18 +676,18 @@ public class FirstPersonController : MonoBehaviour
         fpc.crosshair = EditorGUILayout.ToggleLeft(new GUIContent("Auto Crosshair", "Determines if the basic crosshair will be turned on, and sets is to the center of the screen."), fpc.crosshair);
 
         // Only displays crosshair options if crosshair is enabled
-        if(fpc.crosshair) 
-        { 
-            EditorGUI.indentLevel++; 
-            EditorGUILayout.BeginHorizontal(); 
-            EditorGUILayout.PrefixLabel(new GUIContent("Crosshair Image", "Sprite to use as the crosshair.")); 
+        if (fpc.crosshair)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel(new GUIContent("Crosshair Image", "Sprite to use as the crosshair."));
             fpc.crosshairImage = (Sprite)EditorGUILayout.ObjectField(fpc.crosshairImage, typeof(Sprite), false);
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
             fpc.crosshairColor = EditorGUILayout.ColorField(new GUIContent("Crosshair Color", "Determines the color of the crosshair."), fpc.crosshairColor);
             EditorGUILayout.EndHorizontal();
-            EditorGUI.indentLevel--; 
+            EditorGUI.indentLevel--;
         }
 
         EditorGUILayout.Space();
@@ -598,7 +699,7 @@ public class FirstPersonController : MonoBehaviour
         fpc.enableZoom = EditorGUILayout.ToggleLeft(new GUIContent("Enable Zoom", "Determines if the player is able to zoom in while playing."), fpc.enableZoom);
 
         GUI.enabled = fpc.enableZoom;
-        fpc.holdToZoom = EditorGUILayout.ToggleLeft(new GUIContent("Hold to Zoom", "Requires the player to hold the zoom key instead if pressing to zoom and unzoom."), fpc.holdToZoom);
+        fpc.holdToZoom = EditorGUILayout.ToggleLeft(new GUIContent("Hold To Zoom", "Requires the player to hold the zoom key instead if pressing to zoom and unzoom."), fpc.holdToZoom);
         fpc.zoomKey = (KeyCode)EditorGUILayout.EnumPopup(new GUIContent("Zoom Key", "Determines what key is used to zoom."), fpc.zoomKey);
         fpc.zoomFOV = EditorGUILayout.Slider(new GUIContent("Zoom FOV", "Determines the field of view the camera zooms to."), fpc.zoomFOV, .1f, fpc.fov);
         fpc.zoomStepTime = EditorGUILayout.Slider(new GUIContent("Step Time", "Determines how fast the FOV transitions while zooming in."), fpc.zoomStepTime, .1f, 10f);
@@ -644,7 +745,7 @@ public class FirstPersonController : MonoBehaviour
         fpc.useSprintBar = EditorGUILayout.ToggleLeft(new GUIContent("Use Sprint Bar", "Determines if the default sprint bar will appear on screen."), fpc.useSprintBar);
 
         // Only displays sprint bar options if sprint bar is enabled
-        if(fpc.useSprintBar)
+        if (fpc.useSprintBar)
         {
             EditorGUI.indentLevel++;
 
@@ -718,7 +819,7 @@ public class FirstPersonController : MonoBehaviour
         EditorGUILayout.Space();
 
         fpc.enableHeadBob = EditorGUILayout.ToggleLeft(new GUIContent("Enable Head Bob", "Determines if the camera will bob while the player is walking."), fpc.enableHeadBob);
-        
+
 
         GUI.enabled = fpc.enableHeadBob;
         fpc.joint = (Transform)EditorGUILayout.ObjectField(new GUIContent("Camera Joint", "Joint object position is moved while head bob is active."), fpc.joint, typeof(Transform), true);
@@ -728,8 +829,18 @@ public class FirstPersonController : MonoBehaviour
 
         #endregion
 
+        // Driving Setup in Custom Editor
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        GUILayout.Label("Driving Setup", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold, fontSize = 13 }, GUILayout.ExpandWidth(true));
+        EditorGUILayout.Space();
+
+        fpc.drivePoint = (Transform)EditorGUILayout.ObjectField(new GUIContent("Drive Point", "The point where the camera should snap to when driving the vehicle."), fpc.drivePoint, typeof(Transform), true);
+        fpc.boat = (GameObject)EditorGUILayout.ObjectField(new GUIContent("Boat Object", "The boat GameObject with the SteeringManager script."), fpc.boat, typeof(GameObject), true);
+        fpc.snapSpeed = EditorGUILayout.Slider(new GUIContent("Snap Speed", "How fast the camera snaps to the new position/rotation."), fpc.snapSpeed, 1f, 10f);
+
         //Sets any changes from the prefab
-        if(GUI.changed)
+        if (GUI.changed)
         {
             EditorUtility.SetDirty(fpc);
             Undo.RecordObject(fpc, "FPC Change");

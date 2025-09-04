@@ -4,7 +4,6 @@ public class Obstacle : MonoBehaviour
 {
     private Vector3 moveDirection;
     private float speed;
-    private GameManager gameManager; // Reference to the GameManager
 
     // Reference to the ObstacleSpawner that created this obstacle
     public ObstacleSpawner parentSpawner;
@@ -14,10 +13,18 @@ public class Obstacle : MonoBehaviour
 
     void Awake()
     {
-        gameManager = FindObjectOfType<GameManager>();
-        if (gameManager == null)
+        // This is now handled by the Spawner before the object is created.
+        // If it's null, we know something went wrong in initialization.
+        if (parentSpawner == null)
         {
-            Debug.LogError("GameManager not found in scene. Obstacle cannot apply penalties.");
+            Debug.LogError("Obstacle not initialized by a spawner. It will not function correctly.");
+        }
+
+        // We find the YachtCollisionSensor on awake
+        yachtCollisionSensor = FindObjectOfType<YachtCollisionSensor>();
+        if (yachtCollisionSensor == null)
+        {
+            Debug.LogError("YachtCollisionSensor not found in scene. Obstacle cannot decrement its count.");
         }
     }
 
@@ -33,48 +40,32 @@ public class Obstacle : MonoBehaviour
         transform.position += moveDirection * speed * Time.deltaTime;
     }
 
-    // Detects when this obstacle collides with another object
     void OnCollisionEnter(Collision collision)
     {
-        // Debug logs for comprehensive analysis
-        Debug.Log($"Obstacle collision detected by {gameObject.name} with {collision.gameObject.name}. Its root: {collision.gameObject.transform.root.gameObject.name}. Root Tag: {collision.gameObject.transform.root.gameObject.tag}");
-        Debug.Log($"Obstacle: Checking against parentSpawner's target: {(parentSpawner != null && parentSpawner.shipColliders != null ? parentSpawner.shipColliders.name : "NULL/UNASSIGNED")}");
+        // This log helps confirm collision detection is working.
+        Debug.Log($"Obstacle collision detected by {gameObject.name} with {collision.gameObject.name}. Its root: {collision.gameObject.transform.root.gameObject.name}.");
 
-
-        // Check if we hit the player's ship collision target (obtained from the spawner)
-        // Also checking if the root object of the collision has the "ShipColliders" tag.
-        if (parentSpawner != null && parentSpawner.shipColliders != null &&
-            collision.gameObject.transform.root.gameObject == parentSpawner.shipColliders &&
-            collision.gameObject.transform.root.CompareTag("ShipColliders"))
+        // We only care about collisions with the player's ship.
+        // We now check against the tag, which is the most reliable method.
+        if (collision.gameObject.transform.root.CompareTag("ShipColliders"))
         {
             Debug.Log($">>> Obstacle {gameObject.name} hit the Player's Ship! Notifying spawner. <<<");
 
-            // Notify the parent spawner to handle the hit (applies penalty, shake, destroys obstacle)
-            // The actual Destroy(gameObject) call will happen inside ObstacleSpawner.HandleObstacleHit
-            parentSpawner.HandleObstacleHit(this, collision.gameObject);
-
-            // Crucially, notify the YachtCollisionSensor that this obstacle is being destroyed
-            if (yachtCollisionSensor != null)
+            // Notify the parent spawner to handle the hit.
+            if (parentSpawner != null)
             {
-                yachtCollisionSensor.DecrementObstacleCount();
-                Debug.Log($"Obstacle {gameObject.name} notified YachtCollisionSensor before destruction.");
+                parentSpawner.HandleObstacleHit(this, collision.gameObject);
             }
             else
             {
-                Debug.LogWarning($"Obstacle {gameObject.name}: YachtCollisionSensor reference missing, cannot decrement count on destruction.");
+                // This is a safety check. If we get here, the obstacle wasn't spawned correctly.
+                Debug.LogError($"Obstacle {gameObject.name}: parentSpawner is NULL, cannot handle hit.");
             }
         }
         else
         {
-            // Debugging for ignored collisions
-            if (parentSpawner != null && parentSpawner.shipColliders != null)
-            {
-                Debug.Log($"Collision condition NOT met for {gameObject.name}. Root of hit object: {collision.gameObject.transform.root.gameObject.name} (Tag: {collision.gameObject.transform.root.gameObject.tag}) vs Expected Ship Target: {parentSpawner.shipColliders.name}. Tag check passed: {collision.gameObject.transform.root.CompareTag("ShipColliders")}");
-            }
-            else
-            {
-                Debug.LogWarning("Obstacle's parentSpawner or shipColliders is NULL during collision check. This obstacle might not have been correctly initialized by the spawner.");
-            }
+            // Optional debug log for when we hit something else.
+            Debug.Log($"Obstacle {gameObject.name} collided with an object that is not the player's ship. Ignoring.");
         }
     }
 }
