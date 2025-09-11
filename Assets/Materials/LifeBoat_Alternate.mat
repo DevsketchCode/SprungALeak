@@ -118,6 +118,7 @@ Material:
     - _AddPrecomputedVelocity: 0
     - _AlphaClip: 0
     - _AlphaToMask: 0
+    - _AmbientOcclusion: 0.072
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BumpScale: 3
@@ -134,6 +135,7 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 0
+    - _Metalness: 0.37
     - _Normal_Strength: 3
     - _OcclusionStrength: 1
     - _Offset: 0

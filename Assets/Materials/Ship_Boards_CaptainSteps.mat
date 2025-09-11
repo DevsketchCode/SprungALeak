@@ -97,6 +97,7 @@ Material:
     - _AddPrecomputedVelocity: 0
     - _AlphaClip: 0
     - _AlphaToMask: 0
+    - _AmbientOcclusion: 1
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BlendOp: 0
@@ -116,7 +117,8 @@ Material:
     - _GlossinessSource: 0
     - _GlossyReflections: 0
     - _Metallic: 0.477
-    - _Normal_Strength: 1.5
+    - _Metalness: 0
+    - _Normal_Strength: 0.6
     - _OcclusionStrength: 1
     - _Offset: 0
     - _Parallax: 0.005
@@ -152,7 +154,7 @@ Material:
     - _Pivot: {r: 0, g: 0, b: 0, a: 0}
     - _RotationCenter: {r: 0.5, g: 0.5, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _Tiling: {r: 10, g: 0.6, b: 0, a: 0}
+    - _Tiling: {r: 10, g: 0.5, b: 0, a: 0}
     - _Tiling_1: {r: 0.5, g: 1, b: 0, a: 0}
     - _Tint: {r: 1, g: 1, b: 1, a: 1}
     - _UvOffset: {r: 0, g: 0, b: 0, a: 0}

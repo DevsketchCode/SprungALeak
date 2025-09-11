@@ -87,7 +87,7 @@ public class YachtCollisionSensor : MonoBehaviour
             }
 
             // Stop warning sound
-            if (audioManager != null)
+            if (audioManager != null && audioManager.boatHornSource != null)
             {
                 if (audioManager.boatHornSource.isPlaying)
                 {

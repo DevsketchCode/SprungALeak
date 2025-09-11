@@ -6,6 +6,8 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     // === Public Variables ===
+    public bool isGameLevel = false;
+
     public GameObject waterPlane;
     public float maxWaterHeight = 5f;
     private int maxPatchesHeld; // Now a private variable, value set from GameSettingsManager
@@ -130,9 +132,9 @@ public class GameManager : MonoBehaviour
         initialTimerIsComplete = false;
         UpdateUI();
 
-        if (SceneManager.GetActiveScene().name == "MainMenu" || SceneManager.GetActiveScene().name == "Credits")
+        if (!isGameLevel)
         {
-            Debug.Log("In Main Menu and Credits Scenes, skip the game start setup.");
+            Debug.Log("Non-Game Level, skipping game level code");
             return;
         }
 
@@ -223,6 +225,12 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
+        if (!isGameLevel)
+        {
+            // Non-Game Level, skipping game level code
+            return;
+        }
+
         if (gameOver) return;
 
         if (!initialTimerIsComplete)
@@ -263,9 +271,9 @@ public class GameManager : MonoBehaviour
                 if (LeakDetectedText != null)
                 {
                     if (activeLeaks.Count == 1)
-                        LeakDetectedText.text = "1 Leak Detected!";
+                        LeakDetectedText.text = "1 Leak Detected";
                     else if (activeLeaks.Count > 1)
-                        LeakDetectedText.text = activeLeaks.Count + " Leaks Detected!";
+                        LeakDetectedText.text = activeLeaks.Count + " Leaks Detected";
                 }
             }
             else // No active leaks
@@ -309,6 +317,12 @@ public class GameManager : MonoBehaviour
 
     private void UpdateUI()
     {
+        if (!isGameLevel)
+        {
+            Debug.Log("Non-Game Level, skipping game level code");
+            return;
+        }
+
         if (leaksText != null)
         {
             leaksText.text = "Active Leaks: " + activeLeaks.Count;
@@ -331,8 +345,8 @@ public class GameManager : MonoBehaviour
                 timerText.text = string.Format("Time Until Help Arrives: {0:00}:{1:00}", minutes, seconds);
             }
         }
-        // Update the collision count UI
-        if (collisionsText != null)
+        // Update the collision count UI
+        if (collisionsText != null)
         {
             if (collisionCount > 0)
             {

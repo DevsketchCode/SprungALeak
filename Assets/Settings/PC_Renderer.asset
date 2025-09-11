@@ -31,7 +31,7 @@ MonoBehaviour:
     depthCompareFunction: 4
     enableWrite: 1
     stencilSettings:
-      overrideStencilState: 1
+      overrideStencilState: 0
       stencilReference: 1
       stencilCompareFunction: 6
       passOperation: 0
@@ -76,10 +76,10 @@ MonoBehaviour:
   m_AssetVersion: 2
   m_OpaqueLayerMask:
     serializedVersion: 2
-    m_Bits: 2031
+    m_Bits: 16367
   m_TransparentLayerMask:
     serializedVersion: 2
-    m_Bits: 2031
+    m_Bits: 16367
   m_DefaultStencilState:
     overrideStencilState: 0
     stencilReference: 1

@@ -7,6 +7,7 @@ public class Leak : MonoBehaviour
 
     // === Private Variables ===
     private GameManager gameManager;
+    private AudioManager audioManager;
     private bool playerIsNearby = false;
     private bool isPatched = false; // Flag to prevent multiple patches
 
@@ -17,6 +18,13 @@ public class Leak : MonoBehaviour
         if (gameManager == null)
         {
             Debug.LogError("GameManager not found in the scene.");
+        }
+
+        // Find the AudioManager object in the scene
+        audioManager = FindObjectOfType<AudioManager>();
+        if (audioManager == null)
+        {
+            Debug.LogError("AudioManager not found in the scene.");
         }
     }
 
@@ -37,6 +45,11 @@ public class Leak : MonoBehaviour
 
         if (gameManager != null)
         {
+            if (audioManager != null && audioManager.patchSound != null)
+            {
+                audioManager.PlayPatchSound();
+                Debug.Log("Patch sound: " + audioManager.patchSound.ToString() + " should have played.");
+            }
             gameManager.DecreasePatches();
             gameManager.RemoveLeak(gameObject);
         }
