@@ -15,17 +15,24 @@ public class FlareGun : MonoBehaviour
 
     // The point from which the flare will be launched. This should be a child object
     // of the FlareGun, positioned at the muzzle.
-    public Transform firePoint;
+    public Transform firingPoint;
 
     [Header("Firing & Ammo")]
     // The number of flares the gun has.
     public int maxFlares = 100;
 
-    // The initial launch speed of the flare.
-    public float flareSpeed = 20f;
-
     // The time in seconds between shots.
     public float fireCooldown = 1.0f;
+
+    [Header("Rocket Engine Settings")]
+    [Tooltip("The initial short burst of force when the flare is fired.")]
+    public float firingImpulse = 10f;
+
+    [Tooltip("The sustained force applied while the rocket engine is active.")]
+    public float engineThrust = 5f;
+
+    [Tooltip("The time in seconds that the rocket engine will apply thrust.")]
+    public float engineBurnTime = 3f;
 
     // --- Private Variables ---
 
@@ -70,21 +77,40 @@ public class FlareGun : MonoBehaviour
         currentFlares--;
 
         // Instantiate a new flare object at the specified fire point's position and rotation.
-        if (flarePrefab != null && firePoint != null)
+        if (flarePrefab != null && firingPoint != null)
         {
-            // Instantiate the flare at the firePoint's world position and rotation.
-            GameObject flareInstance = Instantiate(flarePrefab, firePoint.position, firePoint.rotation);
+            // Instantiate the flare at the firingPoint's world position and rotation.
+            GameObject flareInstance = Instantiate(flarePrefab, firingPoint.position, firingPoint.rotation);
 
-            // The flare prefab needs a Rigidbody component with "Use Gravity" enabled.
-            Rigidbody rb = flareInstance.GetComponent<Rigidbody>();
-            if (rb != null)
+
+            // Get the Rigidbody component from a child object if the prefab hierarchy is structured that way.
+            Rigidbody flareRb = flareInstance.GetComponentInChildren<Rigidbody>();
+
+            if (flareRb != null)
             {
-                // Apply a forward force to launch the flare.
-                rb.AddForce(firePoint.forward * flareSpeed, ForceMode.VelocityChange);
+                // Apply a short, immediate impulse force to get the flare moving.
+                flareRb.AddForce(firingPoint.forward * firingImpulse, ForceMode.Impulse);
+                Debug.DrawRay(firingPoint.position, firingPoint.forward * 5, Color.red, 2f);
+
+                // Get the FlareBullet script to pass the engine settings.
+                FlareBullet flareScript = flareInstance.GetComponentInChildren<FlareBullet>();
+
+                // Pass the engine settings to the flare script.
+                if (flareScript != null)
+                {
+                    flareScript.InitializeEngine(engineThrust, engineBurnTime);
+                }
+
+
+                //Rigidbody bulletInstance;
+                //bulletInstance = Instantiate(flareBullet, barrelEnd.position, barrelEnd.rotation) as Rigidbody; //INSTANTIATING THE FLARE PROJECTILE
+
+
+                //bulletInstance.AddForce(barrelEnd.forward * bulletSpeed); //ADDING FORWARD FORCE TO THE FLARE PROJECTILE
             }
             else
             {
-                Debug.LogWarning("The flare prefab is missing a Rigidbody component. The flare will not move.");
+                Debug.LogWarning("The flare prefab is missing a Rigidbody component on its children. The flare will not move.");
             }
             Debug.Log($"Flare gun fired! Flares remaining: {currentFlares}");
         }

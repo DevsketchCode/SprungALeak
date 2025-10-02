@@ -61,13 +61,17 @@
     <Analyzer Include="D:\Programs\Unity\Hub\Editor\6000.0.36f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\InteractableItem.cs" />
     <Compile Include="Assets\Scripts\Obstacle.cs" />
+    <Compile Include="Assets\Flare Gun\Scripts\flarebullet.cs" />
     <Compile Include="Assets\Scripts\TempClass.cs" />
     <Compile Include="Assets\Scripts\CustomizationMenu.cs" />
     <Compile Include="Assets\Joystick Pack\Scripts\Joysticks\FloatingJoystick.cs" />
     <Compile Include="Assets\Scripts\AudioManager.cs" />
     <Compile Include="Assets\Scripts\Leak.cs" />
     <Compile Include="Assets\ResupplyPatches.cs" />
+    <Compile Include="Assets\Flare Gun\Scripts\swayc.cs" />
+    <Compile Include="Assets\Flare Gun\Scripts\Flaregun.cs" />
     <Compile Include="Assets\Scripts\SteeringManager.cs" />
     <Compile Include="Assets\Scripts\ShipCollisionShakeEffect.cs" />
     <Compile Include="Assets\Joystick Pack\Scripts\Joysticks\FixedJoystick.cs" />
@@ -81,10 +85,12 @@
     <Compile Include="Assets\Scripts\FlareGun.cs" />
     <Compile Include="Assets\Joystick Pack\Scripts\Joysticks\VariableJoystick.cs" />
     <Compile Include="Assets\Scripts\GameSettingsManager.cs" />
+    <Compile Include="Assets\Scripts\PlayerInteraction.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\IndividualSpraySpawner.cs" />
     <Compile Include="Assets\Scripts\WaterMaskController.cs" />
     <Compile Include="Assets\Scripts\SpinningLightEffects.cs" />
+    <Compile Include="Assets\Flare Gun\Scripts\flareround.cs" />
     <Compile Include="Assets\Scripts\FlareBullet.cs" />
     <Compile Include="Assets\Scripts\ShipPositionToShader.cs" />
   </ItemGroup>

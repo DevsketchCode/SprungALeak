@@ -13,6 +13,8 @@ public class GameManager : MonoBehaviour
     private int maxPatchesHeld; // Now a private variable, value set from GameSettingsManager
     public int patchesHeldByPlayer = 0; // The current number of patches the player has
 
+    public bool itemHeldByPlayer = false;
+
     // Public property to expose maxPatchesHeld to other scripts
     public int MaxPatchesHeld { get { return maxPatchesHeld; } }
 
@@ -298,7 +300,7 @@ public class GameManager : MonoBehaviour
                 // Calculate and display flooded percentage
                 floodedPercentage = ((maxWaterHeight - (maxWaterLevel - currentWaterHeight)) / maxWaterHeight) * 100;
                 floodedPercentageText.text = $"Flooded: {floodedPercentage:F1}%";
-                floodingRiseRateText.text = $"Flood Rise Rate: {CurrentWaterRiseRate:F2} m/s"; // Display the new combined rate
+                floodingRiseRateText.text = $"Flood Rise Rate: {CurrentWaterRiseRate * 100:F0}%"; // Display the new combined rate
 
                 if (currentWaterHeight >= maxWaterLevel)
                 {

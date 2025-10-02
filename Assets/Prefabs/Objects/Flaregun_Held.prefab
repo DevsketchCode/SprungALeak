@@ -137,7 +137,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   flarePrefab: {fileID: 5464707640493671566, guid: dcc16db63f0d2cf40835ed786fd7c2b5, type: 3}
-  firePoint: {fileID: 7876937005276612789}
+  firingPoint: {fileID: 7876937005276612789}
   maxFlares: 100
-  flareSpeed: 20
+  firingForce: 10
   fireCooldown: 1
